@@ -46,7 +46,7 @@ import matplotlib.pyplot as plt
 大盘股和小盘股的区别并不是固定的，随着上市公司的增多，以及A股市场总市值的不断变化，大小盘股的划分标准也应该是动态变化的。
 
 此次划分标准：分析 流通股本的中位数、75%分位数、90%分位数
-4.043335300000001 9.524347610000001 22.142985079000017          【2022-09-11】
+4.043335300000001 9.524347610000001 22.142985079000017          
 中位数以下：小盘股
 90%分位数以上：大盘股
 
@@ -66,6 +66,7 @@ import matplotlib.pyplot as plt
 '''
 
 
+# noinspection PyMethodMayBeStatic,SpellCheckingInspection
 class StockPick01(object):
     # 股票池 [上市]
     stocks_pool = DataFrame()
@@ -77,9 +78,9 @@ class StockPick01(object):
     trade_data = None
     # 股票分类字典
     # {
-    #     "小盘股":{"行业1":[stockinfo1,stockinfo2,...],"行业2":[stockinfo1,stockinfo2,...],...},
-    #     "中盘股":{"行业1":[stockinfo1,stockinfo2,...],"行业2":[stockinfo1,stockinfo2,...],...},
-    #     "大盘股":{"行业1":[stockinfo1,stockinfo2,...],"行业2":[stockinfo1,stockinfo2,...],...}
+    #     "小盘股":{"行业1":stockinfoDataFrame,"行业2":stockinfoDataFrame,...},
+    #     "中盘股":{"行业1":stockinfoDataFrame,"行业2":stockinfoDataFrame,...},
+    #     "大盘股":{"行业1":stockinfoDataFrame,"行业2":stockinfoDataFrame,...}
     # }
     smb_industry_map = dict()
     tscode_set = set()
@@ -96,32 +97,36 @@ class StockPick01(object):
     # 分位数设定
     cut = [4.5, 20.0]
     # 行情获取
-    tsdatacapture = TuShareDataCapturer()
-
-    basicindexdata = tsdatacapture.get_daily_basic()
+    tsdatacapture: TuShareDataCapturer = TuShareDataCapturer()
+    basicindexdata: DataFrame = tsdatacapture.get_daily_basic()
 
     def __init__(self):
-        self.smb_industry_map = {
+        StockPick01.smb_industry_map = {
             '小盘股': {}, '中盘股': {}, '大盘股': {}
         }
-        self.stocks_pool = self.stocks_pool.append(self.tsdatacapture.get_stock_list())
-        for idx, tsdata in self.stocks_pool.iterrows():
-            self.tscode_set.add(tsdata['ts_code'])
+        StockPick01.stocks_pool = StockPick01.stocks_pool.append(StockPick01.tsdatacapture.get_stock_list())
+        for idx, sata in StockPick01.stocks_pool.iterrows():
+            StockPick01.tscode_set.add(sata['ts_code'])
         pass
 
     def cal_smb_industry_map(self):
-        '''
+        """
         计算 smb_industry_map
-        '''
-        # 获取流通市值 float_mv、行业 industry
-        print(self.stocks_pool)
-        dfall = self.tsdatacapture.get_bak_basic()
+        {
+             "小盘股":{"行业1":stockinfoDataFrame,"行业2":stockinfoDataFrame,...},
+             "中盘股":{"行业1":stockinfoDataFrame,"行业2":stockinfoDataFrame,...},
+             "大盘股":{"行业1":stockinfoDataFrame,"行业2":stockinfoDataFrame,...}
+        }
+        """
+        # 获取流通市值 float_share、行业 industry
+        print(StockPick01.stocks_pool)
+        dfall = StockPick01.tsdatacapture.get_bak_basic()
         for idx, stkdata in dfall.iterrows():
             ts_code = stkdata['ts_code']
-            self.tscode_set.discard(ts_code)
-        print(self.tscode_set)
-        for tcod in self.tscode_set:
-            df = self.tsdatacapture.get_bak_basic(ts_code=tcod)
+            StockPick01.tscode_set.discard(ts_code)
+        print(StockPick01.tscode_set)
+        for tcod in StockPick01.tscode_set:
+            df = StockPick01.tsdatacapture.get_bak_basic(ts_code=tcod)
             dfall = dfall.append(df, ignore_index=True)
         print(dfall.head(5))
 
@@ -133,26 +138,32 @@ class StockPick01(object):
         for idx, stkdata in dfall.iterrows():
             float_mv = stkdata["float_share"]
             ele_industry = stkdata["industry"]
-            self.industry_set.add(stkdata["industry"])
+            StockPick01.industry_set.add(stkdata["industry"])
             if float_mv <= valuation_low:
-                self.small_cap_stocks.append(stkdata)
-                if self.smb_industry_map['小盘股'].get(ele_industry) is None:
-                    self.smb_industry_map['小盘股'][ele_industry] = list()
-                self.smb_industry_map['小盘股'][ele_industry].append(stkdata)
+                StockPick01.small_cap_stocks.append(stkdata)
+                if StockPick01.smb_industry_map['小盘股'].get(ele_industry) is None:
+                    StockPick01.smb_industry_map['小盘股'][ele_industry] = DataFrame()
+                StockPick01.smb_industry_map['小盘股'][ele_industry] = StockPick01.smb_industry_map['小盘股'][
+                    ele_industry].append(stkdata, ignore_index=True)
+                # StockPick01.smb_industry_map['小盘股'][ele_industry].append(stkdata)
             elif float_mv >= valuation_high:
-                self.big_cap_stocks.append(stkdata)
-                if self.smb_industry_map['大盘股'].get(ele_industry) is None:
-                    self.smb_industry_map['大盘股'][ele_industry] = list()
-                self.smb_industry_map['大盘股'][ele_industry].append(stkdata)
+                StockPick01.big_cap_stocks.append(stkdata)
+                if StockPick01.smb_industry_map['大盘股'].get(ele_industry) is None:
+                    StockPick01.smb_industry_map['大盘股'][ele_industry] = DataFrame()
+                # StockPick01.smb_industry_map['大盘股'][ele_industry].append(stkdata)
+                StockPick01.smb_industry_map['大盘股'][ele_industry] = StockPick01.smb_industry_map['大盘股'][
+                    ele_industry].append(stkdata, ignore_index=True)
+
             else:
-                self.mid_cap_stocks.append(stkdata)
-                if self.smb_industry_map['中盘股'].get(ele_industry) is None:
-                    self.smb_industry_map['中盘股'][ele_industry] = list()
-                self.smb_industry_map['中盘股'][ele_industry].append(stkdata)
-        #         2500 2000 500 5000
-        # print(len(self.small_cap_stocks), len(self.mid_cap_stocks), len(self.big_cap_stocks), dfall["float_share"].size)
-        # print(self.smb_industry_map['大盘股'])
-    # noinspection PyIncorrectDocstring
+                StockPick01.mid_cap_stocks.append(stkdata)
+                if StockPick01.smb_industry_map['中盘股'].get(ele_industry) is None:
+                    StockPick01.smb_industry_map['中盘股'][ele_industry] = DataFrame()
+                # StockPick01.smb_industry_map['中盘股'][ele_industry].append(stkdata)
+                StockPick01.smb_industry_map['中盘股'][ele_industry] = StockPick01.smb_industry_map['中盘股'][
+                    ele_industry].append(stkdata, ignore_index=True)
+        # print(len(StockPick01.small_cap_stocks), len(StockPick01.mid_cap_stocks), len(StockPick01.big_cap_stocks), dfall["float_share"].size)
+        # print(StockPick01.smb_industry_map['大盘股'])
+
     def get_data_percentile(self, data: list, v_low=50.0, v_mid=83.83, v_high=94.22) -> tuple:
         """
         获取 data 最大值 最小值  高、中、低分位数
