@@ -121,10 +121,9 @@ class StockPick01(object):
             self.tscode_set.discard(ts_code)
         print(self.tscode_set)
         for tcod in self.tscode_set:
-            df=self.tsdatacapture.get_bak_basic(ts_code=tcod)
+            df = self.tsdatacapture.get_bak_basic(ts_code=tcod)
             dfall = dfall.append(df, ignore_index=True)
         print(dfall.head(5))
-        print(len(dfall))
 
         # 此次划分标准：分析 流通股本的中位数、75%分位数、90%分位数
         # 中位数以下：小盘股
@@ -133,15 +132,26 @@ class StockPick01(object):
             np.array(dfall.iloc[:].loc[:, 'float_share']).tolist(), 50, 75, 90)
         for idx, stkdata in dfall.iterrows():
             float_mv = stkdata["float_share"]
+            ele_industry = stkdata["industry"]
+            self.industry_set.add(stkdata["industry"])
             if float_mv <= valuation_low:
                 self.small_cap_stocks.append(stkdata)
+                if self.smb_industry_map['小盘股'].get(ele_industry) is None:
+                    self.smb_industry_map['小盘股'][ele_industry] = list()
+                self.smb_industry_map['小盘股'][ele_industry].append(stkdata)
             elif float_mv >= valuation_high:
                 self.big_cap_stocks.append(stkdata)
+                if self.smb_industry_map['大盘股'].get(ele_industry) is None:
+                    self.smb_industry_map['大盘股'][ele_industry] = list()
+                self.smb_industry_map['大盘股'][ele_industry].append(stkdata)
             else:
                 self.mid_cap_stocks.append(stkdata)
+                if self.smb_industry_map['中盘股'].get(ele_industry) is None:
+                    self.smb_industry_map['中盘股'][ele_industry] = list()
+                self.smb_industry_map['中盘股'][ele_industry].append(stkdata)
         #         2500 2000 500 5000
-        print(len(self.small_cap_stocks), len(self.mid_cap_stocks), len(self.big_cap_stocks), dfall["float_share"].size)
-
+        # print(len(self.small_cap_stocks), len(self.mid_cap_stocks), len(self.big_cap_stocks), dfall["float_share"].size)
+        # print(self.smb_industry_map['大盘股'])
     # noinspection PyIncorrectDocstring
     def get_data_percentile(self, data: list, v_low=50.0, v_mid=83.83, v_high=94.22) -> tuple:
         """
