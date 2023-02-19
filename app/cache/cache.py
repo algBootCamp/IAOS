@@ -25,3 +25,4 @@ class BasicDataCache(object):
 
     def refresh(self):
         BasicDataCache.daily_basic_data = self.datacapture.get_daily_basic()
+        print("全部股票每日重要的基本面指标更新完毕。")

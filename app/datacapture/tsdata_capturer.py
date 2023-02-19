@@ -39,6 +39,42 @@ class TuShareDataCapturer(object):
         df = self.pro.query('stock_basic', exchange='', list_status='L',
                             fields='ts_code,symbol,name,area,industry,list_date')
         return df
+        # 获取备用基础列表，数据从2016年开始
+
+    def get_bak_basic(self, ts_code: str = None, trade_date: str = None) -> DataFrame:
+        """
+        获取备用基础列表，数据从2016年开始
+        trade_date	        str	N	交易日期
+        ts_code	            str	N	股票代码
+        ___________________________
+        return
+        trade_date	        str	Y	交易日期
+        ts_code	            str	Y	TS股票代码
+        name	            str	Y	股票名称
+        industry	        str	Y	行业
+        area	            str	Y	地域
+        pe	                float	Y	市盈率（动）
+        float_share	        float	Y	流通股本（亿）
+        total_share	        float	Y	总股本（亿）
+        total_assets	    float	Y	总资产（亿）
+        liquid_assets	    float	Y	流动资产（亿）
+        fixed_assets	    float	Y	固定资产（亿）
+        reserved	        float	Y	公积金
+        reserved_pershare	float	Y	每股公积金
+        eps	                float	Y	每股收益
+        bvps	            float	Y	每股净资产
+        pb	                float	Y	市净率
+        list_date	        str	Y	上市日期
+        undp	            float	Y	未分配利润
+        per_undp	        float	Y	每股未分配利润
+        rev_yoy	            float	Y	收入同比（%）
+        profit_yoy      	float	Y	利润同比（%）
+        gpr	                float	        Y	毛利率（%）
+        npr	                float	        Y	净利润率（%）
+        holder_num	        int	Y	股东人数
+        """
+        df = self.pro.bak_basic(ts_code=ts_code, trade_date=trade_date)
+        return df
 
     # 获取各大交易所交易日历数据 交易所 SSE上交所 SZSE深交所
     def get_trade_cal(self, start_date: str = '20220101', end_date: str = '20990101') -> DataFrame:
@@ -149,40 +185,57 @@ class TuShareDataCapturer(object):
         df = self.pro.daily_basic(ts_code=ts_code, trade_date=trade_date, start_date=start_date, end_date=end_date)
         return df
 
-    # 获取备用基础列表，数据从2016年开始
-    def get_bak_basic(self, ts_code: str = None, trade_date: str = None) -> DataFrame:
-        """
-        获取备用基础列表，数据从2016年开始
-        trade_date	        str	N	交易日期
-        ts_code	            str	N	股票代码
-        ___________________________
-        return
-        trade_date	        str	Y	交易日期
-        ts_code	            str	Y	TS股票代码
-        name	            str	Y	股票名称
-        industry	        str	Y	行业
-        area	            str	Y	地域
-        pe	                float	Y	市盈率（动）
-        float_share	        float	Y	流通股本（亿）
-        total_share	        float	Y	总股本（亿）
-        total_assets	    float	Y	总资产（亿）
-        liquid_assets	    float	Y	流动资产（亿）
-        fixed_assets	    float	Y	固定资产（亿）
-        reserved	        float	Y	公积金
-        reserved_pershare	float	Y	每股公积金
-        eps	                float	Y	每股收益
-        bvps	            float	Y	每股净资产
-        pb	                float	Y	市净率
-        list_date	        str	Y	上市日期
-        undp	            float	Y	未分配利润
-        per_undp	        float	Y	每股未分配利润
-        rev_yoy	            float	Y	收入同比（%）
-        profit_yoy      	float	Y	利润同比（%）
-        gpr	                float	        Y	毛利率（%）
-        npr	                float	        Y	净利润率（%）
-        holder_num	        int	Y	股东人数
-        """
-        df = self.pro.bak_basic(ts_code=ts_code, trade_date=trade_date)
+    def get_bak_daily(self, ts_code: str = None, trade_date: str = None, start_date: str = None, end_date: str = None,
+                      offset: str = None, limit: str = None, fields: str = None) -> DataFrame:
+        '''
+        描述：获取备用行情，包括特定的行情指标
+        限量：单次最大5000行数据，可以根据日期参数循环获取，正式权限需要5000积分。
+        ______
+        输入参数
+        名称	类型	必选	描述
+        ts_code	str	N	股票代码
+        trade_date	str	N	交易日期
+        start_date	str	N	开始日期
+        end_date	str	N	结束日期
+        offset	str	N	开始行数
+        limit	str	N	最大行数
+
+        输出参数
+        名称	类型	默认显示	描述
+        ts_code	str	Y	股票代码
+        trade_date	str	Y	交易日期
+        name	str	Y	股票名称
+        pct_change	float	Y	涨跌幅
+        close	float	Y	收盘价
+        change	float	Y	涨跌额
+        open	float	Y	开盘价
+        high	float	Y	最高价
+        low	float	Y	最低价
+        pre_close	float	Y	昨收价
+        vol_ratio	float	Y	量比
+        turn_over	float	Y	换手率
+        swing	float	Y	振幅
+        vol	float	Y	成交量
+        amount	float	Y	成交额
+        selling	float	Y	内盘（主动卖，手）
+        buying	float	Y	外盘（主动买， 手）
+        total_share	float	Y	总股本(亿)
+        float_share	float	Y	流通股本(亿)
+        pe	float	Y	市盈(动)
+        industry	str	Y	所属行业
+        area	str	Y	所属地域
+        float_mv	float	Y	流通市值
+        total_mv	float	Y	总市值
+        avg_price	float	Y	平均价
+        strength	float	Y	强弱度(%)
+        activity	float	Y	活跃度(%)
+        avg_turnover	float	Y	笔换手
+        attack	float	Y	攻击波(%)
+        interval_3	float	Y	近3月涨幅
+        interval_6	float	Y	近6月涨幅
+        '''
+        df = self.pro.bak_daily(ts_code=ts_code, trade_date=trade_date, start_date=start_date, end_date=end_date,
+                                offset=offset, limit=limit, fields=fields)
         return df
 
     # 一次性获取最近一个日交易日所有股票的交易数据
