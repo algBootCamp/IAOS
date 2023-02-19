@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
 __author__ = 'carl'
 
-from pandas import Series, DataFrame
+from pandas import DataFrame
 from datacapture.tsdata_capturer import TuShareDataCapturer
-from cache.cache import BasicDataCache
-import pandas as pd
 import numpy as np
-# from scipy import stats
-import matplotlib.pyplot as plt
 
 '''
 选股是一个系统的思维过程，需要回答多个问题：
@@ -54,7 +50,7 @@ import matplotlib.pyplot as plt
 实现思路：
 使用tushare包获取基本面和交易数据，使用Pandas和Matplotlib对数据特征进行描述性统计和可视化分析；
 根据股票财务和行情指标进行排序，通过设置参数和过滤值筛选股票。
-具体指标包括市盈率、市净率、流通股本、总市值、每股公积金、每股收益、收入同比、利润同比、毛利率、净利润率等。
+具体指标包括 动态市盈率、市净率、流通股本、总市值、每股公积金、每股收益、收入同比、利润同比、毛利率、净利润率等。
 --------------------------------------
 
            --  大盘股       -- 行业 ---  指标排序
@@ -83,8 +79,8 @@ class StockPick01(object):
     #     "大盘股":{"行业1":stockinfoDataFrame,"行业2":stockinfoDataFrame,...}
     # }
     smb_industry_map = dict()
+    # ts code
     tscode_set = set()
-    industry_map = dict()
     # 行业
     industry_set = set()
     # 小盘股
@@ -101,15 +97,29 @@ class StockPick01(object):
     basicindexdata: DataFrame = tsdatacapture.get_daily_basic()
 
     def __init__(self):
-        StockPick01.smb_industry_map = {
-            '小盘股': {}, '中盘股': {}, '大盘股': {}
+        # 初始化 股票池 [上市] stocks_pool
+        self.init_stocks_pool()
+        # 初始化 tscode_set
+        self.init_tscode_set()
+        '''
+        初始化 small_cap_stocks mid_cap_stocks big_cap_stocks ---- > smb_industry_map
+        将上市的股票 按照大小盘、行业进行分类存储
+        {
+            "小盘股": {"行业1": stockinfoDataFrame, "行业2": stockinfoDataFrame, ...},
+            "中盘股": {"行业1": stockinfoDataFrame, "行业2": stockinfoDataFrame, ...},
+            "大盘股": {"行业1": stockinfoDataFrame, "行业2": stockinfoDataFrame, ...}
         }
-        StockPick01.stocks_pool = StockPick01.stocks_pool.append(StockPick01.tsdatacapture.get_stock_list())
+        '''
+        self.init_smb_industry_map()
+
+    def init_tscode_set(self):
         for idx, sata in StockPick01.stocks_pool.iterrows():
             StockPick01.tscode_set.add(sata['ts_code'])
-        pass
 
-    def cal_smb_industry_map(self):
+    def init_stocks_pool(self):
+        StockPick01.stocks_pool = StockPick01.stocks_pool.append(StockPick01.tsdatacapture.get_stock_list())
+
+    def init_smb_industry_map(self):
         """
         计算 smb_industry_map
         {
@@ -118,6 +128,9 @@ class StockPick01(object):
              "大盘股":{"行业1":stockinfoDataFrame,"行业2":stockinfoDataFrame,...}
         }
         """
+        StockPick01.smb_industry_map = {
+            '小盘股': {}, '中盘股': {}, '大盘股': {}
+        }
         # 获取流通市值 float_share、行业 industry
         print(StockPick01.stocks_pool)
         dfall = StockPick01.tsdatacapture.get_bak_basic()
