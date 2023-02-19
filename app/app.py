@@ -8,7 +8,7 @@ from conf.globalcfg import GlobalCfg
 from controller.blueprint import blue
 
 app = Flask(__name__)
-app.config['DEBUG'] = True
+app.config['DEBUG'] = False
 app.config['SECRET_KEY'] = 'ABCDEFG'
 
 # 蓝图  简单理解蓝图：就是将系统的代码模块化（组件化）

@@ -95,14 +95,20 @@ class StockPick01(object):
     # 行情获取
     tsdatacapture: TuShareDataCapturer = TuShareDataCapturer()
     basicindexdata: DataFrame = tsdatacapture.get_daily_basic()
+    instance = None
+    # 保证单例
+    def __new__(cls, *args, **kwargs):
+        if cls.instance is None:
+            cls.instance = object.__new__(cls)
+        return cls.instance
 
-    def __init__(self):
+    def __init__(self) -> object:
         # 初始化 股票池 [上市] stocks_pool
         self.init_stocks_pool()
         # 初始化 tscode_set
         self.init_tscode_set()
         '''
-        初始化 small_cap_stocks mid_cap_stocks big_cap_stocks ---- > smb_industry_map
+        初始化 industry_set small_cap_stocks mid_cap_stocks big_cap_stocks ---- > smb_industry_map
         将上市的股票 按照大小盘、行业进行分类存储
         {
             "小盘股": {"行业1": stockinfoDataFrame, "行业2": stockinfoDataFrame, ...},
@@ -111,7 +117,7 @@ class StockPick01(object):
         }
         '''
         self.init_smb_industry_map()
-
+        print("StockPick01加载完成... ...")
     def init_tscode_set(self):
         for idx, sata in StockPick01.stocks_pool.iterrows():
             StockPick01.tscode_set.add(sata['ts_code'])
@@ -132,16 +138,16 @@ class StockPick01(object):
             '小盘股': {}, '中盘股': {}, '大盘股': {}
         }
         # 获取流通市值 float_share、行业 industry
-        print(StockPick01.stocks_pool)
+        # print("StockPick01\r\n"+StockPick01.stocks_pool)
         dfall = StockPick01.tsdatacapture.get_bak_basic()
         for idx, stkdata in dfall.iterrows():
             ts_code = stkdata['ts_code']
             StockPick01.tscode_set.discard(ts_code)
-        print(StockPick01.tscode_set)
+        # print("StockPick01  \r\n"+StockPick01.tscode_set)
         for tcod in StockPick01.tscode_set:
             df = StockPick01.tsdatacapture.get_bak_basic(ts_code=tcod)
             dfall = dfall.append(df, ignore_index=True)
-        print(dfall.head(5))
+        # print("StockPick01\r\n"+dfall.head(5))
 
         # 此次划分标准：分析 流通股本的中位数、75%分位数、90%分位数
         # 中位数以下：小盘股
