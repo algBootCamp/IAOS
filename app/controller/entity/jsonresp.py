@@ -7,12 +7,12 @@ __author__ = 'carl'
 
 
 class JsonResponse(object):
-
     """
     统一的json返回格式
     """
-    CODE_ERROR = '404/500 ERROR'
-    CODE_SUCCESS = '200 OK'
+    CODE_ERROR = '-1'
+    CODE_SUCCESS = '0'
+
     def __init__(self, data, code, msg):
         self.data = data
         self.code = code

@@ -40,4 +40,4 @@ def error_handler(e):
 @blue.route('/', methods=['POST', 'GET'])  # url路由
 def main():
     print("访问 main ... ...")
-    return "hello iaos~"
+    return "Hello IAOS Server~ "
