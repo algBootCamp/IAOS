@@ -6,6 +6,7 @@ import json
 from flask import Blueprint, request, render_template, session, Response, redirect
 
 # noinspection SpellCheckingInspection
+from controller.entity.jsonresp import JsonResponse
 from quantization.securitypick.stockpick01 import StockPick01
 
 '''contoller'''
@@ -18,9 +19,25 @@ stkp01: StockPick01 = StockPick01()
 
 
 @blue.route('/display_industry.do', methods=['POST', 'GET'])  # url路由
-def display_industry()->str:
+def display_industry():
     '''
     展示行业分类
     '''
-    return json.dumps(list(stkp01.industry_set))
+    print("访问 display_industry ... ...")
+    return list(StockPick01.industry_set)
 
+
+@blue.errorhandler(Exception)
+def error_handler(e):
+    """
+    全局异常捕获，也相当于一个视图函数
+    """
+    print("异常 ... ...", str(e))
+    return JsonResponse.error(msg=str(e))
+
+
+# test
+@blue.route('/', methods=['POST', 'GET'])  # url路由
+def main():
+    print("访问 main ... ...")
+    return "hello iaos~"
