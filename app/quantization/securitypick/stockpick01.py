@@ -69,7 +69,7 @@ log_err = logging.getLogger("log_err")
 
 # ----  log ------ #
 
-# noinspection PyMethodMayBeStatic,SpellCheckingInspection
+# noinspection PyMethodMayBeStatic,SpellCheckingInspection,PyIncorrectDocstring
 class StockPick01(object):
     # 股票池 [上市]
     stocks_pool = DataFrame()
@@ -215,8 +215,9 @@ class StockPick01(object):
         :return:
         """
         if data is None or len(data) < 1:
-            print("data 数据有异常～")
-            return
+            log_err.error("StockPick01.get_data_percentile 参数data异常!")
+            raise Exception("StockPick01.get_data_percentile 参数data异常:", data)
+
         data_max = max(data)
         data_min = min(data)
         valuation_high = np.percentile(data, v_high)
