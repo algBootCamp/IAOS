@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 __author__ = 'carl'
 
+import logging
+
 from pandas import DataFrame
 
 '''
@@ -8,6 +10,9 @@ from pandas import DataFrame
 '''
 from datacapture.tsdata_capturer import TuShareDataCapturer
 
+# ----  log ------ #
+log = logging.getLogger("app")
+# ----  log ------ #
 
 # noinspection SpellCheckingInspection,PyMethodMayBeStatic
 class BasicDataCache(object):
@@ -26,3 +31,4 @@ class BasicDataCache(object):
     def refresh(self):
         BasicDataCache.daily_basic_data = self.datacapture.get_daily_basic()
         print("全部股票每日重要的基本面指标更新完毕... ...")
+        # log.info("全部股票每日重要的基本面指标更新完毕... ...")

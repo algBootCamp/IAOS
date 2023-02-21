@@ -1,11 +1,44 @@
 # -*- coding: utf-8 -*-
 __author__ = 'carl'
 
+import logging
+import logging.config
+import os
+import sys
+from importlib import reload
 from cache.cache import BasicDataCache
 from conf.globalcfg import GlobalCfg
 from controller.blueprint import blue
 from flask import Flask, jsonify
 from controller.entity.jsonresp import JsonResponse
+
+# 路径加载
+reload(sys)
+sys.path.append('./')
+sys.path.append('../')
+# print env
+print('IAOS Server %s on %s' % (sys.version, sys.platform))
+
+# get golbal_cfg
+global_cfg = GlobalCfg()
+
+# ----  log init ------ #
+log_files = global_cfg.get_log_files()
+# 确保log file path存在 python logging不提供创建日志文件路径
+for file_list in log_files.values():
+    log_filenames = file_list.split(',')
+    for log_filename in log_filenames:
+        print(log_filename)
+        os.makedirs(os.path.dirname(log_filename), exist_ok=True)
+LOG_CFG = "conf/logging.cfg"
+self_path = __file__
+log_cfg_path = self_path.split("app.py", 1)[0] + LOG_CFG
+logging.config.fileConfig(LOG_CFG)
+# app,log_quantization,log_schedtask,log_blueprint,log_analysis
+log = logging.getLogger("app")
+
+
+# ----  log init ------ #
 
 
 class IAOSFlask(Flask):
@@ -25,18 +58,17 @@ class IAOSFlask(Flask):
 def init():
     # 常用基础数据缓存 TODO
     BasicDataCache().refresh()
+    log.debug("常用基础数据缓存完成。")
 
 
 # start the app
 # noinspection SpellCheckingInspection
 def start():
-    # get config
-    cfg = GlobalCfg()
     # init
     init()
 
     # start web server
-    server_info = cfg.get_server_info()
+    server_info = global_cfg.get_server_info()
     # flask app build
     app = IAOSFlask(__name__)
     # 蓝图  简单理解蓝图：就是将系统的代码模块化（组件化）
@@ -48,6 +80,7 @@ def start():
     # 跨域的解决方案
     # CORS(app, supports_credentials=True)
     app.run(host=server_info['host'], port=int(server_info['port']))
+    log.debug("IAOS Server Start!")
 
 
 if __name__ == '__main__':

@@ -1,5 +1,5 @@
 # app运行脚本
-./initenv.sh
+../iaosenv/bin/activate
 export FLASK_APP=../app/app
 #flask run --reload --debugger -p 8888
 # reload：热加载  debugger：debug模式

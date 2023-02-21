@@ -12,12 +12,14 @@ class GlobalCfg(object):
     server_flag = 'flask.server'
     ts_flag = 'tushare.info'
     dolphin_flag = 'dolphindb.info'
+    log_files_flag = 'log.files'
     cfg_path = 'cfg.ini'
 
     def __init__(self) -> object:
         self.server_info = dict()
         self.ts_info = dict()
         self.dlophin_info = dict()
+        self.log_files = dict()
 
     def __new__(cls, *args, **kwargs):
         if cls.instance is None:
@@ -45,7 +47,15 @@ class GlobalCfg(object):
             self.dlophin_info = ConfigHelper.get_cfg_info(self.cfg_path, GlobalCfg.dolphin_flag)
         return self.dlophin_info
 
-    # noinspection PyRedundantParentheses,SpellCheckingInspection
+    # noinspection PyRedundantParentheses
+    def get_log_files(self) -> dict:
+        if (0 == len(self.log_files)):
+            self.initcfg()
+            self.log_files = ConfigHelper.get_cfg_info(self.cfg_path, GlobalCfg.log_files_flag)
+        return self.log_files
+
+        # noinspection PyRedundantParentheses,SpellCheckingInspection
+
     def initcfg(self):
         self.cfg_path = __file__
         self.cfg_path = self.cfg_path.split("globalcfg.py", 1)[0] + GlobalCfg.cfg_path
