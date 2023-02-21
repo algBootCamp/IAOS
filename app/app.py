@@ -23,6 +23,17 @@ print('IAOS Server %s on %s' % (sys.version, sys.platform))
 global_cfg = GlobalCfg()
 
 # ---- global log init ------ #
+"""
+全局日志文件列表
+其余模块使用：仅需logging.getLogger("xxx") 即可
+
+app：                主日志，包括flask服务、数据获取、cache等
+log_quantization：   量化逻辑日志
+log_schedtask：      定时任务日志
+log_blueprint：      外部功能提供接口日志（controller）
+log_analysis：       因子验证评价逻辑日志
+log_err：            错误日志
+"""
 log_files = global_cfg.get_log_files()
 # 确保log file path存在 python logging不提供创建日志文件路径
 for file_list in log_files.values():
@@ -34,12 +45,10 @@ LOG_CFG = "conf/logging.cfg"
 self_path = __file__
 log_cfg_path = self_path.split("app.py", 1)[0] + LOG_CFG
 logging.config.fileConfig(LOG_CFG)
-# app,log_quantization,log_schedtask,log_blueprint,log_analysis,log_err
+# ----------------------- global log init ----------------------- #
+
 log = logging.getLogger("app")
 log_err = logging.getLogger("log_err")
-
-
-# ---- global log init ------ #
 
 
 class IAOSFlask(Flask):
