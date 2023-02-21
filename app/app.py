@@ -12,7 +12,7 @@ from controller.blueprint import blue
 from flask import Flask, jsonify
 from controller.entity.jsonresp import JsonResponse
 
-# 路径加载
+# 路径加载 [后续用作lib加载，便于部署]
 reload(sys)
 sys.path.append('./')
 sys.path.append('../')
@@ -24,8 +24,8 @@ global_cfg = GlobalCfg()
 
 # ---- global log init ------ #
 """
-全局日志文件列表
-其余模块使用：仅需logging.getLogger("xxx") 即可
+全局日志文件key 列表
+其余模块使用：仅需logging.getLogger(key) 即可
 
 app：                主日志，包括flask服务、数据获取、cache等
 log_quantization：   量化逻辑日志
