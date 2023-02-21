@@ -22,7 +22,7 @@ print('IAOS Server %s on %s' % (sys.version, sys.platform))
 # get golbal_cfg
 global_cfg = GlobalCfg()
 
-# ---- global log init ------ #
+# ----------------------- global log init ----------------------- #
 """
 全局日志文件key 列表
 其余模块使用：仅需logging.getLogger(key) 即可
