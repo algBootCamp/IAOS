@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 __author__ = 'carl'
 
+import logging
+
 from pandas import DataFrame
 from datacapture.tsdata_capturer import TuShareDataCapturer
 import numpy as np
@@ -60,7 +62,12 @@ import numpy as np
 --------------------------------------
 
 '''
+# ----  log ------ #
+log = logging.getLogger("log_quantization")
+log_err = logging.getLogger("log_err")
 
+
+# ----  log ------ #
 
 # noinspection PyMethodMayBeStatic,SpellCheckingInspection
 class StockPick01(object):
@@ -96,6 +103,7 @@ class StockPick01(object):
     tsdatacapture: TuShareDataCapturer = TuShareDataCapturer()
     basicindexdata: DataFrame = tsdatacapture.get_daily_basic()
     instance = None
+
     # 保证单例
     def __new__(cls, *args, **kwargs):
         if cls.instance is None:
@@ -117,13 +125,24 @@ class StockPick01(object):
         }
         '''
         self.init_smb_industry_map()
-        print("StockPick01加载完成... ...")
+        log.info("StockPick01 load done.")
+
     def init_tscode_set(self):
-        for idx, sata in StockPick01.stocks_pool.iterrows():
-            StockPick01.tscode_set.add(sata['ts_code'])
+        try:
+            for idx, sata in StockPick01.stocks_pool.iterrows():
+                StockPick01.tscode_set.add(sata['ts_code'])
+            log.info("StockPick01.tscode_set init sucess.")
+        except Exception as e:
+            log_err.error("StockPick01.tscode_set init Failed! ", e)
+            raise Exception("StockPick01.tscode_set init Failed! %s" % e)
 
     def init_stocks_pool(self):
-        StockPick01.stocks_pool = StockPick01.stocks_pool.append(StockPick01.tsdatacapture.get_stock_list())
+        try:
+            StockPick01.stocks_pool = StockPick01.stocks_pool.append(StockPick01.tsdatacapture.get_stock_list())
+            log.info("StockPick01.stocks_pool init sucess.")
+        except Exception as e:
+            log_err.error("StockPick01.stocks_pool init Failed! ", e)
+            raise Exception("StockPick01.stocks_pool init Failed! %s" % e)
 
     def init_smb_industry_map(self):
         """
@@ -138,8 +157,12 @@ class StockPick01(object):
             '小盘股': {}, '中盘股': {}, '大盘股': {}
         }
         # 获取流通市值 float_share、行业 industry
-        # print("StockPick01\r\n"+StockPick01.stocks_pool)
-        dfall = StockPick01.tsdatacapture.get_bak_basic()
+        dfall = None
+        try:
+            dfall = StockPick01.tsdatacapture.get_bak_basic()
+        except Exception as e:
+            log_err.error("StockPick01.tsdatacapture.get_bak_basic Failed! ", e)
+            raise Exception("StockPick01.tsdatacapture.get_bak_basic Failed! %s" % e)
         for idx, stkdata in dfall.iterrows():
             ts_code = stkdata['ts_code']
             StockPick01.tscode_set.discard(ts_code)
@@ -180,8 +203,10 @@ class StockPick01(object):
                 # StockPick01.smb_industry_map['中盘股'][ele_industry].append(stkdata)
                 StockPick01.smb_industry_map['中盘股'][ele_industry] = StockPick01.smb_industry_map['中盘股'][
                     ele_industry].append(stkdata, ignore_index=True)
-        # print(len(StockPick01.small_cap_stocks), len(StockPick01.mid_cap_stocks), len(StockPick01.big_cap_stocks), dfall["float_share"].size)
-        # print(StockPick01.smb_industry_map['大盘股'])
+        # %s" % e
+        log.info("大盘股数量：", len(StockPick01.big_cap_stocks), "中盘股数量：", len(StockPick01.mid_cap_stocks), "小盘股数量：",
+                 len(StockPick01.small_cap_stocks))
+        log.info("StockPick01.smb_industry_map init sucess.")
 
     def get_data_percentile(self, data: list, v_low=50.0, v_mid=83.83, v_high=94.22) -> tuple:
         """

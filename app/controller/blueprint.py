@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 __author__ = 'carl'
 
-import json
+import logging
 
 from flask import Blueprint, request, render_template, session, Response, redirect
 
@@ -9,7 +9,12 @@ from flask import Blueprint, request, render_template, session, Response, redire
 from controller.entity.jsonresp import JsonResponse
 from quantization.securitypick.stockpick01 import StockPick01
 
-'''contoller'''
+# ----  log ------ #
+log = logging.getLogger("log_blueprint")
+log_err = logging.getLogger("log_err")
+# ----  log ------ #
+
+"""contoller"""
 blue = Blueprint('blue', __name__)
 '''
 进行大小盘分类、行业分类，基于此根据股票财务和行情指标进行排序，通过设置参数和过滤值筛选股票。
@@ -18,12 +23,12 @@ blue = Blueprint('blue', __name__)
 stkp01: StockPick01 = StockPick01()
 
 
-@blue.route('/display_industry.do', methods=['POST', 'GET'])  # url路由
+@blue.route('/display_industry.do', methods=['POST', 'GET'])
 def display_industry():
-    '''
+    """
     展示行业分类
-    '''
-    print("访问 display_industry ... ...")
+    """
+    log.info("访问 display_industry 接口... ...")
     return list(StockPick01.industry_set)
 
 
@@ -32,12 +37,12 @@ def error_handler(e):
     """
     全局异常捕获，也相当于一个视图函数
     """
-    print("异常 ... ...", str(e))
+    log_err.error("接口访问异常!", e)
     return JsonResponse.error(msg=str(e))
 
 
 # test
-@blue.route('/', methods=['POST', 'GET'])  # url路由
+@blue.route('/', methods=['POST', 'GET'])
 def main():
-    print("访问 main ... ...")
-    return "Hello IAOS Server~ "
+    log.info("访问 main 接口... ...")
+    return 'Hello IAOS Server ~ '
