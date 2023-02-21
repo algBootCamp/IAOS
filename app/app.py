@@ -28,7 +28,7 @@ log_files = global_cfg.get_log_files()
 for file_list in log_files.values():
     log_filenames = file_list.split(',')
     for log_filename in log_filenames:
-        print(log_filename)
+        # print(log_filename)
         os.makedirs(os.path.dirname(log_filename), exist_ok=True)
 LOG_CFG = "conf/logging.cfg"
 self_path = __file__
