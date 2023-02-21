@@ -1,5 +1,7 @@
 # IAOS(Intelligent analysis of securities)证券智能分析
 # 量化选股
+- 多因子选股
+- 趋势跟踪选股
 # 量化择时
 # 条件选股
 - 选股范围：市场【沪深】、行业
