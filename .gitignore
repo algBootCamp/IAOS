@@ -2,3 +2,5 @@
 /iaosenv/
 /.idea
 /iaosenv/
+/logs/
+/app/test/.pytest_cache/

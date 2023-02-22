@@ -4,7 +4,7 @@ __author__ = 'carl'
 import backtrader as bt
 import pandas as pd
 import warnings
-from datacapture.tsdata_capturer import TuShareDataCapturer
+from quotation.tsdata_capturer import TuShareDataCapturer
 
 warnings.filterwarnings("ignore")
 

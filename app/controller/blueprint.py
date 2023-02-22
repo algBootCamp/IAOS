@@ -3,22 +3,27 @@ __author__ = 'carl'
 
 import functools
 import logging
-from flask import Blueprint, request, render_template, session, Response, redirect
+from flask import Blueprint, request, redirect
 # noinspection SpellCheckingInspection
-from controller.entity.jsonresp import JsonResponse
+from entity.jsonresp import JsonResponse
 from quantization.securitypick.stockpick01 import StockPick01
 
 
 # --------- blueprint util --------- #
 def blueprintlog(lg):
     """log blueprint decorator"""
+
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kw):
             lg.info("访问 %s 接口." % func.__name__)
             return func(*args, **kw)
+
         return wrapper
+
     return decorator
+
+
 # --------- blueprint util --------- #
 
 
@@ -37,7 +42,7 @@ blue = Blueprint('blue', __name__)
 stkp01: StockPick01 = StockPick01()
 
 
-# main
+# default
 @blue.route('/', methods=['POST', 'GET'])
 @blueprintlog(log)
 def main():
@@ -55,6 +60,38 @@ def display_industry():
     return list(StockPick01.industry_set)
 
 
+@blueprintlog(log)
+@blue.route('/sel_stks_by_cons.do', methods=['POST'])
+def sel_stks_by_cons():
+    """条件选股"""
+    if request.method == 'GET':
+        return None
+    else:
+        user = User()
+        user.username = request.form.get('username')
+        user.userpwd = request.form.get('userpwd')
+        user.usersex = request.form.get('sex')[0]
+        user.userage = request.form.get('age')
+        user.userqq = request.form.get('qq')
+        user.userphone = request.form.get('phone')
+        hobby = request.form.getlist('hobby')
+        flage = request.form.get('flages')
+        n = ''
+        for i in hobby:
+            n = n + r'、' + i
+        user.userhobby = n.rstrip(r'、').lstrip(r'、')
+        result = userService.add_user(user)
+        print(result)
+
+        if result > 0:
+            return redirect('/message.do')
+
+        else:
+            return '新增失败'
+
+    pass
+
+
 @blue.errorhandler(Exception)
 def error_handler(e):
     """
@@ -62,6 +99,3 @@ def error_handler(e):
     """
     log_err.error("接口访问异常!", e)
     return JsonResponse.error(msg=str(e))
-
-
-

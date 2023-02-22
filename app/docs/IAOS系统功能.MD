@@ -33,8 +33,8 @@
 - #### cache：常用基础数据缓存模块
 - #### conf：配置模块
 - #### controller：web接口模块
-- #### datacapture：数据获取模块
-- #### datas：文件数据存储
+- #### quotation：行情数据获取模块
+- #### entity：实体类
 - #### db：持久层组件、dolphindb接口、脚本模块
 - #### docs：参考文档、功能介绍文档等
 - #### static：web前端静态文件

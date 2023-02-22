@@ -6,7 +6,7 @@ __author__ = 'carl'
 import pandas as pd
 from pandas import DataFrame
 
-from datacapture.tsdata_capturer import TuShareDataCapturer
+from quotation.tsdata_capturer import TuShareDataCapturer
 import matplotlib.pyplot as plt
 import matplotlib
 import seaborn as sns  # 画图用的

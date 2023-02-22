@@ -8,7 +8,7 @@ from pandas import DataFrame
 '''
 常用基础数据缓存，每日自动拉取一次，可主动刷新
 '''
-from datacapture.tsdata_capturer import TuShareDataCapturer
+from quotation.tsdata_capturer import TuShareDataCapturer
 
 # ----  log ------ #
 log = logging.getLogger("app")

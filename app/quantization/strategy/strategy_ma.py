@@ -4,7 +4,7 @@ __author__ = 'carl'
 from datetime import datetime
 import backtrader as bt
 
-from datacapture.tsdata_capturer import TuShareDataCapturer
+from quotation.tsdata_capturer import TuShareDataCapturer
 
 '''
 均线策略：当收盘价上涨突破15日均线买入（做多），当收盘价下跌跌穿15日均线卖出（做空）
