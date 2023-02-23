@@ -34,12 +34,29 @@ class TuShareDataCapturer(object):
     '''----------------------以下：沪深股票数据----------------------'''
     '''----------------------以下：基础数据----------------------'''
 
-    # 查询当前所有正常上市交易的股票列表
     def get_stock_list(self) -> DataFrame:
-        df = self.pro.query('stock_basic', exchange='', list_status='L',
-                            fields='ts_code,symbol,name,area,industry,list_date')
+        """
+        查询当前所有正常上市交易的股票列表
+        return:
+        --------------------------
+        ts_code	str	Y	TS代码
+        symbol	str	Y	股票代码
+        name	str	Y	股票名称
+        area	str	Y	地域
+        industry	str	Y	所属行业
+        fullname	str	N	股票全称
+        enname	str	N	英文全称
+        cnspell	str	N	拼音缩写
+        market	str	Y	市场类型（主板/创业板/科创板/CDR）
+        exchange	str	N	交易所代码
+        curr_type	str	N	交易货币
+        list_status	str	N	上市状态 L上市 D退市 P暂停上市
+        list_date	str	Y	上市日期
+        delist_date	str	N	退市日期
+        is_hs	str	N	是否沪深港通标的，N否 H沪股通 S深股通
+        """
+        df = self.pro.stock_basic(list_status='L')
         return df
-        # 获取备用基础列表，数据从2016年开始
 
     def get_bak_basic(self, ts_code: str = None, trade_date: str = None) -> DataFrame:
         """
@@ -76,19 +93,20 @@ class TuShareDataCapturer(object):
         df = self.pro.bak_basic(ts_code=ts_code, trade_date=trade_date)
         return df
 
-    # 获取各大交易所交易日历数据 交易所 SSE上交所 SZSE深交所
-    def get_trade_cal(self, start_date: str = '20220101', end_date: str = '20990101') -> DataFrame:
-        df = self.pro.trade_cal(exchange='', start_date=start_date, end_date=end_date)
+    def get_trade_cal(self, exchange: str = 'SSE', start_date: str = '20220101', end_date: str = '20990101',
+                      is_open: str = '1') -> DataFrame:
+        """获取各大交易所交易日历数据 交易所 SSE上交所 SZSE深交所"""
+        df = self.pro.trade_cal(exchange=exchange, start_date=start_date, end_date=end_date, is_open=is_open)
         return df
 
-    # 上市公司基本信息 获取上市公司基础信息，单次提取4500条，可以根据交易所分批提取
     def get_stock_company(self, ts_code: str = None, exchange: str = None) -> DataFrame:
+        """上市公司基本信息 获取上市公司基础信息，单次提取4500条，可以根据交易所分批提取"""
         df = self.pro.stock_company(exchange=exchange, ts_code=ts_code,
                                     fields='ts_code,chairman,manager,secretary,reg_capital,setup_date,province')
         return df
 
-    # 管理层薪酬和持股 end_date:报告期  ts_code: TS股票代码，支持单个或多个代码输入
     def get_stk_rewards(self, ts_code: str = None, end_date: str = None) -> DataFrame:
+        """管理层薪酬和持股 end_date:报告期  ts_code: TS股票代码，支持单个或多个代码输入"""
         df = self.pro.stk_rewards(ts_code=ts_code, end_date=end_date)
         return df
 
@@ -609,7 +627,9 @@ class TuShareDataCapturer(object):
     # 财富管理
     # 数据索引
     '''----------------------以上：沪深股票数据----------------------'''
-
+# 交易数据
+# trade_data=ts.get_today_all()
+# 时间默认为当前交易日的上一个交易日
 # test
 # print(TuShareDataCapturer().get_stock_list()["ts_code"].size)
 # print(TuShareDataCapturer().get_daily_basic(trade_date='20220906')["ts_code"].size)

@@ -4,7 +4,7 @@ __author__ = 'carl'
 import logging
 
 from pandas import DataFrame
-from quotation.tsdata_capturer import TuShareDataCapturer
+from quotation.captures.tsdata_capturer import TuShareDataCapturer
 import numpy as np
 
 '''

@@ -4,13 +4,9 @@ __author__ = 'carl'
 # https://mp.weixin.qq.com/s/7b_uPuWLpkF52lrYQiumvQ
 # https://mp.weixin.qq.com/s/f0uQ4JxWyCmYXBKA-hQktQ
 import pandas as pd
-from pandas import DataFrame
 
-from quotation.tsdata_capturer import TuShareDataCapturer
+from quotation.captures.tsdata_capturer import TuShareDataCapturer
 import matplotlib.pyplot as plt
-import matplotlib
-import seaborn as sns  # 画图用的
-from matplotlib import font_manager
 
 # 正常显示画图时出现的中文
 # from pylab import mpl
