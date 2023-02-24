@@ -27,7 +27,7 @@ global_cfg = GlobalCfg()
 全局日志文件key 列表
 其余模块使用：仅需logging.getLogger(key) 即可
 
-app：                主日志，包括flask服务、数据获取、cache等
+app：                主日志，包括flask服务、数据获取、cache、db等
 log_quantization：   量化逻辑日志
 log_schedtask：      定时任务日志
 log_blueprint：      外部功能提供接口日志（controller）

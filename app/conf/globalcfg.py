@@ -12,14 +12,23 @@ class GlobalCfg(object):
     server_flag = 'flask.server'
     ts_flag = 'tushare.info'
     dolphin_flag = 'dolphindb.info'
+    db_flag = 'db.info'
+    redis_flag = 'redis.info'
     log_files_flag = 'log.files'
     cfg_path = 'cfg.ini'
 
     def __init__(self) -> object:
-        self.server_info = dict()
-        self.ts_info = dict()
-        self.dlophin_info = dict()
-        self.log_files = dict()
+        # flask配置信息
+        self.__server_info = dict()
+        # tushare配置信息
+        self.__ts_info = dict()
+        self.__dlophin_info = dict()
+        # 数据库连接池配置信息
+        self.__db_info = dict()
+        # redis配置信息
+        self.__redis_info = dict()
+        # 日志配置信息
+        self.__log_files = dict()
 
     def __new__(cls, *args, **kwargs):
         if cls.instance is None:
@@ -28,31 +37,45 @@ class GlobalCfg(object):
 
     # noinspection PyRedundantParentheses
     def get_ts_info(self) -> dict:
-        if (0 == len(self.ts_info)):
+        if (0 == len(self.__ts_info)):
             self.initcfg()
-            self.ts_info = ConfigHelper.get_cfg_info(self.cfg_path, GlobalCfg.ts_flag)
-        return self.ts_info
+            self.__ts_info = ConfigHelper.get_cfg_info(self.cfg_path, GlobalCfg.ts_flag)
+        return self.__ts_info
 
     # noinspection PyRedundantParentheses
     def get_server_info(self) -> dict:
-        if (0 == len(self.server_info)):
+        if (0 == len(self.__server_info)):
             self.initcfg()
-            self.server_info = ConfigHelper.get_cfg_info(self.cfg_path, GlobalCfg.server_flag)
-        return self.server_info
+            self.__server_info = ConfigHelper.get_cfg_info(self.cfg_path, GlobalCfg.server_flag)
+        return self.__server_info
 
     # noinspection PyRedundantParentheses
     def get_dlophin_info(self) -> dict:
-        if (0 == len(self.dlophin_info)):
+        if (0 == len(self.__dlophin_info)):
             self.initcfg()
-            self.dlophin_info = ConfigHelper.get_cfg_info(self.cfg_path, GlobalCfg.dolphin_flag)
-        return self.dlophin_info
+            self.__dlophin_info = ConfigHelper.get_cfg_info(self.cfg_path, GlobalCfg.dolphin_flag)
+        return self.__dlophin_info
+
+    # noinspection PyRedundantParentheses
+    def get_db_info(self) -> dict:
+        if (0 == len(self.__db_info)):
+            self.initcfg()
+            self.__db_info = ConfigHelper.get_cfg_info(self.cfg_path, GlobalCfg.db_flag)
+        return self.__db_info
+
+    # noinspection PyRedundantParentheses
+    def get_redis_info(self) -> dict:
+        if (0 == len(self.__redis_info)):
+            self.initcfg()
+            self.__redis_info = ConfigHelper.get_cfg_info(self.cfg_path, GlobalCfg.redis_flag)
+        return self.__redis_info
 
     # noinspection PyRedundantParentheses
     def get_log_files(self) -> dict:
-        if (0 == len(self.log_files)):
+        if (0 == len(self.__log_files)):
             self.initcfg()
-            self.log_files = ConfigHelper.get_cfg_info(self.cfg_path, GlobalCfg.log_files_flag)
-        return self.log_files
+            self.__log_files = ConfigHelper.get_cfg_info(self.cfg_path, GlobalCfg.log_files_flag)
+        return self.__log_files
 
         # noinspection PyRedundantParentheses,SpellCheckingInspection
 
