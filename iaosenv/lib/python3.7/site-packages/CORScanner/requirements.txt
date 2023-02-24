@@ -1,7 +1,0 @@
-requests
-gevent
-tldextract
-argparse
-colorama
-future
-PySocks
