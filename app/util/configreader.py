@@ -16,5 +16,5 @@ class ConfigHelper(object):
         info = dict()
         if cfg_flag in config:
             for key in config[cfg_flag]:
-                info[key] = config[cfg_flag][key]
+                info[key] = config[cfg_flag][key].strip()
         return info
