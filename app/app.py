@@ -9,10 +9,9 @@ from cache.cache import BasicDataCache
 from conf.globalcfg import GlobalCfg
 from controller.blueprint import blue
 from flask import Flask, jsonify
-
-# 路径加载 [后续用作lib加载，便于部署]
 from entity.jsonresp import JsonResponse
 
+# 路径加载 [后续用作lib加载，便于部署]
 reload(sys)
 sys.path.append('./')
 sys.path.append('../')
