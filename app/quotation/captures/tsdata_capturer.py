@@ -386,6 +386,12 @@ class TuShareDataCapturer(object):
                                  start_date=start_date, end_date=end_date)
         return df
 
+    def get_sw_daily(self, ts_code: str = None, trade_date: str = None,
+                     start_date: str = None, end_date: str = None) -> DataFrame:
+        """申万行业数据"""
+        df = self.pro.sw_daily(ts_code=ts_code, trade_date=trade_date, start_date=start_date, end_date=end_date)
+        return df
+
     '''----------------------以下：财务数据----------------------'''
     '''
     主要报表类型(report_type)说明
