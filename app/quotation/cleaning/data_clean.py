@@ -2,7 +2,6 @@
 __author__ = 'carl'
 
 import logging
-import time
 import pandas as pd
 from pandas import DataFrame
 from quotation.captures.tsdata_capturer import TuShareDataCapturer
@@ -123,13 +122,20 @@ class BaseDataClean(object):
         # 交易数据 一次性获取最近一个日交易日所有股票的交易数据
         trade_data = None
 
-        need_col = ['ts_code', 'symbol', 'industry', 'exchange',
+        need_col = ['ts_code', 'symbol', 'name', 'area', 'industry', 'market', 'list_date', 'exchange',
                     'pe', 'pe_ttm', 'pb', 'ps', 'ps_ttm', 'total_share', 'float_share', 'total_mv', 'circ_mv',
-                    'dv_ratio', 'dv_ttm', 'changepercent', 'trade', 'volume', 'turnoverratio', 'amount'
+                    'dv_ratio', 'dv_ttm', 'changepercent', 'trade', 'volume', 'turnoverratio', 'amount',
+                    'ann_date', 'end_date', 'eps', 'current_ratio', 'quick_ratio', 'bps',
+                    'netprofit_margin', 'grossprofit_margin', 'profit_to_gr', 'op_of_gr', 'roe',
+                    'roa', 'npta', 'roic', 'roe_yearly', 'roa2_yearly', 'debt_to_assets', 'op_yoy',
+                    'ebt_yoy', 'tr_yoy', 'or_yoy', 'equity_yoy', 'update_flag'
                     ]
-        rename_col = ['TS股票代码', '股票代码', '行业', '交易所',
+        rename_col = ['TS股票代码', '股票代码', '股票名称', '地区', '行业', '市场', '上市日期', '交易所',
                       '市盈率', '市盈率TTM', '市净率', '市销率', '市销率TTM', '总股本', '流通股本', '总市值', '流通市值',
-                      '股息率', '股息率TTM', '涨跌幅', '现价', '成交量', '换手率', '成交额'
+                      '股息率', '股息率TTM', '涨跌幅', '现价', '成交量', '换手率', '成交额',
+                      '公告日期', '报告期', '基本每股收益', '流动比率', '速动比率', '每股净资产', '销售净利率',
+                      '销售毛利率', '净利润率', '营业利润率', '净资产收益率', '总资产报酬率', '总资产净利润', '投入资本回报率', '年化净资产收益率',
+                      '年化总资产报酬率', '资产负债率', '营业利润同比增长率', '利润总额同比增长率', '营业总收入同比增长率', '营业收入同比增长率', '净资产同比增长率', '更新标识'
                       ]
         rename_dict = dict(zip(need_col, rename_col))
         try:
@@ -142,7 +148,7 @@ class BaseDataClean(object):
             # add exchange  df.insert(loc=len(df.columns), column='player', value=player_vals)
             exchange_data = ex_indu_data['ts_code'].tolist()
             exchange_data = [x.split('.')[1] for x in exchange_data]
-            exchange_data=pd.Series(exchange_data)
+            exchange_data = pd.Series(exchange_data)
             print(exchange_data)
             ex_indu_data.insert(loc=len(ex_indu_data.columns), column='exchange', value=exchange_data)
             # 全部股票每日重要的基本面指标
@@ -185,19 +191,10 @@ class BaseDataClean(object):
             log_err.error("BaseDataClean.base_stock_infos init Failed!", e)
         pass
 
-    def init_tscode_set(self):
-        try:
-            for idx, sata in BaseDataClean.stocks_pool.iterrows():
-                BaseDataClean.tscode_set.add(sata['ts_code'])
-            log.info("BaseDataClean.tscode_set init sucess.")
-        except Exception as e:
-            log_err.error("BaseDataClean.tscode_set init Failed! ", e)
-            raise Exception("BaseDataClean.tscode_set init Failed! %s" % e)
-
     @classmethod
     def init_stocks_pool(cls):
+        """上市股票池"""
         try:
-            #
             cls.stocks_pool = BaseDataClean.tsdatacapture.get_stock_list()
             log.info("BaseDataClean.stocks_pool init sucess.")
         except Exception as e:
@@ -267,7 +264,8 @@ class BaseDataClean(object):
                  len(BaseDataClean.small_cap_stocks))
         log.info("BaseDataClean.smb_industry_map init sucess.")
 
-    def get_data_percentile(self, data: list, v_low=50.0, v_mid=83.83, v_high=94.22) -> tuple:
+    @classmethod
+    def get_data_percentile(cls, data: list, v_low=50.0, v_mid=83.83, v_high=94.22) -> tuple:
         """
         获取 data 最大值 最小值  高、中、低分位数
         :param data:
@@ -293,5 +291,5 @@ class BaseDataClean(object):
         # print(trade_cal.head(3))
         if trade_cal is not None:
             BaseDataClean.pretrade_date = trade_cal['pretrade_date'].loc[0]
-        log.info("pretrade_date is %s." % BaseDataClean.pretrade_date)
+        log.info("pretrade date is %s." % BaseDataClean.pretrade_date)
         return str(BaseDataClean.pretrade_date)
