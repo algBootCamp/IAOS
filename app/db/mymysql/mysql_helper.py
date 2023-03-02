@@ -3,7 +3,7 @@ __author__ = 'carl'
 
 import logging
 
-from db.mymysql.mysql_db_pool import get_my_connection
+from db.mymysql.mysql_db_pool import MyConnectionPool
 
 '''
 mysql操作：增删改查
@@ -31,7 +31,7 @@ class MySqLHelper(object):
 
     def __init__(self):
         """从数据池中获取连接"""
-        self.db = get_my_connection()
+        self.db = MyConnectionPool()
 
     def execute(self, sql, param=None, autoclose=False):
         """

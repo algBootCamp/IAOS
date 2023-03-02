@@ -5,6 +5,7 @@ import logging
 
 from dbutils.pooled_db import PooledDB
 from conf.globalcfg import GlobalCfg
+from entity.singleton import Singleton
 
 """
 功能：创建数据库连接池
@@ -14,7 +15,7 @@ log_err = logging.getLogger("log_err")
 
 
 # noinspection PyBroadException
-class MyConnectionPool(object):
+class MyConnectionPool(Singleton):
     __pool = None
     global_cfg = GlobalCfg()
     db_info = global_cfg.get_db_info()
