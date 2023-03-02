@@ -2,6 +2,7 @@
 __author__ = 'carl'
 
 import logging
+import logging.config
 
 from pandas import DataFrame
 from quotation.captures.tsdata_capturer import TuShareDataCapturer

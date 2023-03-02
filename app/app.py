@@ -7,7 +7,6 @@ import sys
 from importlib import reload
 from cache.cache import BasicDataCache
 from conf.globalcfg import GlobalCfg
-from controller.blueprint import blue
 from flask import Flask, jsonify
 from entity.jsonresp import JsonResponse
 
@@ -43,7 +42,7 @@ for file_list in log_files.values():
 LOG_CFG = "conf/logging.cfg"
 self_path = __file__
 log_cfg_path = self_path.split("app.py", 1)[0] + LOG_CFG
-logging.config.fileConfig(LOG_CFG)
+logging.config.fileConfig(log_cfg_path)
 # ----------------------- global log init ----------------------- #
 
 log = logging.getLogger("app")
@@ -83,6 +82,7 @@ def start():
         # flask app build
         app = IAOSFlask(__name__)
         # 蓝图  简单理解蓝图：就是将系统的代码模块化（组件化）
+        from controller.blueprint import blue
         app.register_blueprint(blue)
         app.config['DEBUG'] = False
         # app.config['SECRET_KEY'] = 'ABCDEFG'
@@ -90,8 +90,8 @@ def start():
         app.config['JSON_AS_ASCII'] = False
         # 跨域的解决方案
         # CORS(app, supports_credentials=True)
+        log.info("IAOS Server will Start!")
         app.run(host=server_info['host'], port=int(server_info['port']))
-        log.info("IAOS Server Start!")
     except Exception as e:
         log_err.error("IAOS Server Failed! ", e)
         raise Exception("IAOS Server Failed! %s" % e)

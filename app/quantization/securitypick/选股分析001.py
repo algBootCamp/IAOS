@@ -40,7 +40,7 @@ import numpy as np
 from scipy import stats
 import tushare as ts 
 import matplotlib.pyplot as plt
-get_ipython().run_line_magic('matplotlib', 'inline')
+# get_ipython().run_line_magic('matplotlib', 'inline')
 
 #正常显示画图时出现的中文和负号
 from pylab import mpl
