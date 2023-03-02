@@ -56,7 +56,6 @@ def display_industry():
     """
     展示行业分类
     """
-    # log.info("访问 %s 接口." % sys._getframe().f_code.co_name)
     return list(StockPick01.industry_set)
 
 
@@ -67,27 +66,7 @@ def sel_stks_by_cons():
     if request.method == 'GET':
         return None
     else:
-        user = User()
-        user.username = request.form.get('username')
-        user.userpwd = request.form.get('userpwd')
-        user.usersex = request.form.get('sex')[0]
-        user.userage = request.form.get('age')
-        user.userqq = request.form.get('qq')
-        user.userphone = request.form.get('phone')
-        hobby = request.form.getlist('hobby')
-        flage = request.form.get('flages')
-        n = ''
-        for i in hobby:
-            n = n + r'、' + i
-        user.userhobby = n.rstrip(r'、').lstrip(r'、')
-        result = userService.add_user(user)
-        print(result)
-
-        if result > 0:
-            return redirect('/message.do')
-
-        else:
-            return '新增失败'
+        pass
 
     pass
 

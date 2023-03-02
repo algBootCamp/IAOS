@@ -12,6 +12,9 @@ from quotation.captures.tsdata_capturer import TuShareDataCapturer
 
 # ----  log ------ #
 log = logging.getLogger("app")
+log_err = logging.getLogger("log_err")
+
+
 # ----  log ------ #
 
 # noinspection SpellCheckingInspection,PyMethodMayBeStatic
@@ -29,5 +32,8 @@ class BasicDataCache(object):
         self.datacapture = TuShareDataCapturer()
 
     def refresh(self):
-        BasicDataCache.daily_basic_data = self.datacapture.get_daily_basic()
-        log.info("全部股票每日重要的基本面指标更新完毕.")
+        try:
+            BasicDataCache.daily_basic_data = self.datacapture.get_daily_basic()
+            log.info("全部股票每日重要的基本面指标更新完毕.")
+        except Exception as e:
+            log_err.error("全部股票每日重要的基本面指标更新失败！%s" % e)

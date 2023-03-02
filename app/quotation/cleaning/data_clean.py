@@ -187,7 +187,7 @@ class BaseDataClean(object):
                 print(BaseDataClean.base_stock_infos.head(1).to_dict())
             pass
         except Exception as e:
-            log_err.error("BaseDataClean.base_stock_infos init Failed!", e)
+            log_err.error("BaseDataClean.base_stock_infos init Failed!%s" % e)
         pass
 
     @classmethod
@@ -197,7 +197,7 @@ class BaseDataClean(object):
             cls.stocks_pool = BaseDataClean.tsdatacapture.get_stock_list()
             log.info("BaseDataClean.stocks_pool init sucess.")
         except Exception as e:
-            log_err.error("BaseDataClean.stocks_pool init Failed! ", e)
+            log_err.error("BaseDataClean.stocks_pool init Failed!%s" % e)
             raise Exception("BaseDataClean.stocks_pool init Failed! %s" % e)
 
     def init_smb_industry_map(self):
@@ -217,7 +217,7 @@ class BaseDataClean(object):
         try:
             dfall = BaseDataClean.tsdatacapture.get_bak_basic()
         except Exception as e:
-            log_err.error("BaseDataClean.tsdatacapture.get_bak_basic Failed! ", e)
+            log_err.error("BaseDataClean.tsdatacapture.get_bak_basic Failed! %s" % e)
             raise Exception("BaseDataClean.tsdatacapture.get_bak_basic Failed! %s" % e)
         for idx, stkdata in dfall.iterrows():
             ts_code = stkdata['ts_code']
@@ -259,8 +259,10 @@ class BaseDataClean(object):
                 BaseDataClean.smb_industry_map['中盘股'][ele_industry] = BaseDataClean.smb_industry_map['中盘股'][
                     ele_industry].append(stkdata, ignore_index=True)
         # %s" % e
-        log.info("大盘股数量：", len(BaseDataClean.big_cap_stocks), "中盘股数量：", len(BaseDataClean.mid_cap_stocks), "小盘股数量：",
-                 len(BaseDataClean.small_cap_stocks))
+        log.info(
+            "大盘股数量：{} 中盘股数量：{} 小盘股数量：{}".format(len(BaseDataClean.big_cap_stocks), len(BaseDataClean.mid_cap_stocks),
+                                                len(BaseDataClean.small_cap_stocks)))
+
         log.info("BaseDataClean.smb_industry_map init sucess.")
 
     @classmethod

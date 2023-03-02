@@ -47,7 +47,7 @@ class MyConnectionPool(Singleton):
                     charset=self.db_info["charset"],
                 )
             except Exception as e:
-                log_err.error("create mysql ConnectionPool failed.", e)
+                log_err.error("create mysql ConnectionPool failed.%s" % e)
                 return None
         log.info("create mysql ConnectionPool success.")
         return self.__pool.connection()
@@ -64,5 +64,5 @@ class MyConnectionPool(Singleton):
             cursor = conn.cursor()
             return cursor, conn
         except Exception as e:
-            log_err.error("get conn from mysql ConnectionPool failed.", e)
+            log_err.error("get conn from mysql ConnectionPool failed.%s" % e)
             return None, None

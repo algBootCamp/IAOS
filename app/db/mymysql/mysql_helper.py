@@ -72,7 +72,7 @@ class MySqLHelper(object):
             res = cursor.fetchall()
             return res
         except Exception as e:
-            log_err.error("selectall exception", e)
+            log_err.error("selectall exception. %s" % e)
             return count
         finally:
             self.close(cursor, conn)
@@ -87,7 +87,7 @@ class MySqLHelper(object):
             res = cursor.fetchone()
             return res
         except Exception as e:
-            log_err.error("selectall exception", e)
+            log_err.error("selectall exception.%s" % e)
             return count
         finally:
             self.close(cursor, conn)
@@ -104,7 +104,7 @@ class MySqLHelper(object):
             conn.commit()
             return count
         except Exception as e:
-            log_err.error("insertone exception", e)
+            log_err.error("insertone exception.%s" % e)
             conn.rollback()
             return count
         finally:
@@ -123,7 +123,7 @@ class MySqLHelper(object):
             conn.commit()
             return count
         except Exception as e:
-            log_err.error("insertmany exception", e)
+            log_err.error("insertmany exception.%s" % e)
             conn.rollback()
             return count
         finally:
@@ -138,7 +138,7 @@ class MySqLHelper(object):
             cursor, conn, count = self.execute(sql, param)
             return count
         except Exception as e:
-            log_err.error("delete exception", e)
+            log_err.error("delete exception.%s" % e)
             conn.rollback()
             return count
         finally:
@@ -154,15 +154,15 @@ class MySqLHelper(object):
             conn.commit()
             return count
         except Exception as e:
-            log_err.error("update exception", e)
+            log_err.error("update exception.%s" % e)
             conn.rollback()
             return count
         finally:
             self.close(cursor, conn)
 
 
-if __name__ == '__main__':
-    db = MySqLHelper()
+# if __name__ == '__main__':
+#     db = MySqLHelper()
 
     # TODO 查询单条
     # sql1 = 'select * from userinfo where name=%s'

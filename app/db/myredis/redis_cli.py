@@ -38,7 +38,7 @@ class RedisClient(object):
                                                            timeout=int(self.redis_info['timeout']))
                 log.info("redis pool init success.")
             except Exception as e:
-                log_err.error("redis pool init failed.", e)
+                log_err.error("redis pool init failed.%s" % e)
 
     def get_redis_cli(self) -> StrictRedis:
         try:
@@ -46,5 +46,5 @@ class RedisClient(object):
             if redis_conn.ping():
                 return redis_conn
         except Exception as e:
-            log_err.error("can't obtain a redis connection.", e)
+            log_err.error("can't obtain a redis connection.%s" % e)
             return None
