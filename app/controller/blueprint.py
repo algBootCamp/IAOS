@@ -97,5 +97,5 @@ def error_handler(e):
     """
     全局异常捕获，也相当于一个视图函数
     """
-    log_err.error("接口访问异常!", e)
+    log_err.error("接口访问异常!%s" % e)
     return JsonResponse.error(msg=str(e))

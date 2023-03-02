@@ -93,7 +93,7 @@ def start():
         log.info("IAOS Server will Start!")
         app.run(host=server_info['host'], port=int(server_info['port']))
     except Exception as e:
-        log_err.error("IAOS Server Failed! ", e)
+        log_err.error("IAOS Server Failed! {}".format(e))
         raise Exception("IAOS Server Failed! %s" % e)
 
 

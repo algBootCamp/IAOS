@@ -134,7 +134,7 @@ class StockPick01(object):
                 StockPick01.tscode_set.add(sata['ts_code'])
             log.info("StockPick01.tscode_set init sucess.")
         except Exception as e:
-            log_err.error("StockPick01.tscode_set init Failed! ", e)
+            log_err.error("StockPick01.tscode_set init Failed! %s" % e)
             raise Exception("StockPick01.tscode_set init Failed! %s" % e)
 
     def init_stocks_pool(self):
@@ -142,7 +142,7 @@ class StockPick01(object):
             StockPick01.stocks_pool = StockPick01.stocks_pool.append(StockPick01.tsdatacapture.get_stock_list())
             log.info("StockPick01.stocks_pool init sucess.")
         except Exception as e:
-            log_err.error("StockPick01.stocks_pool init Failed! ", e)
+            log_err.error("StockPick01.stocks_pool init Failed! %s" % e)
             raise Exception("StockPick01.stocks_pool init Failed! %s" % e)
 
     def init_smb_industry_map(self):
@@ -162,7 +162,7 @@ class StockPick01(object):
         try:
             dfall = StockPick01.tsdatacapture.get_bak_basic()
         except Exception as e:
-            log_err.error("StockPick01.tsdatacapture.get_bak_basic Failed! ", e)
+            log_err.error("StockPick01.tsdatacapture.get_bak_basic Failed! %s" % e)
             raise Exception("StockPick01.tsdatacapture.get_bak_basic Failed! %s" % e)
         for idx, stkdata in dfall.iterrows():
             ts_code = stkdata['ts_code']
@@ -205,8 +205,8 @@ class StockPick01(object):
                 StockPick01.smb_industry_map['中盘股'][ele_industry] = StockPick01.smb_industry_map['中盘股'][
                     ele_industry].append(stkdata, ignore_index=True)
         # %s" % e
-        log.info("大盘股数量：", len(StockPick01.big_cap_stocks), "中盘股数量：", len(StockPick01.mid_cap_stocks), "小盘股数量：",
-                 len(StockPick01.small_cap_stocks))
+        log.info("大盘股数量：{} 中盘股数量：{} 小盘股数量：{}".format(len(StockPick01.big_cap_stocks), len(StockPick01.mid_cap_stocks),
+                                                     len(StockPick01.small_cap_stocks)))
         log.info("StockPick01.smb_industry_map init sucess.")
 
     def get_data_percentile(self, data: list, v_low=50.0, v_mid=83.83, v_high=94.22) -> tuple:
@@ -217,7 +217,7 @@ class StockPick01(object):
         """
         if data is None or len(data) < 1:
             log_err.error("StockPick01.get_data_percentile 参数data异常!")
-            raise Exception("StockPick01.get_data_percentile 参数data异常:", data)
+            raise Exception("StockPick01.get_data_percentile 参数data异常:%s" % data)
 
         data_max = max(data)
         data_min = min(data)
