@@ -1,7 +1,7 @@
 import threading
 import time
 
-from db.myredis.redis_distributed_lock import RedisLock
+from db.myredis.redis_lock import RedisLock
 
 
 def test_lock():

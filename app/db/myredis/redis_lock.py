@@ -8,6 +8,7 @@ from db.myredis.redis_cli import RedisClient
 '''
 基于redis实现分布式锁
 实现互斥锁，支持重入和续锁
+具体用法参考：test.test_redis_lock
 '''
 import threading
 import weakref
