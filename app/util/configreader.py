@@ -10,7 +10,7 @@ class ConfigHelper(object):
 
     # get your need config info
     @staticmethod
-    def get_cfg_info(cfg_path, cfg_flag) -> object:
+    def get_cfg_info(cfg_path, cfg_flag) -> dict:
         config = configparser.ConfigParser()
         config.read(cfg_path)
         info = dict()

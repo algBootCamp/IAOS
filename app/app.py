@@ -5,6 +5,10 @@ import logging.config
 import os
 import sys
 from importlib import reload
+
+import click
+from flask.cli import with_appcontext, FlaskGroup
+
 from cache.cache import BasicDataCache
 from conf.globalcfg import GlobalCfg
 from flask import Flask, jsonify
@@ -65,23 +69,29 @@ class IAOSFlask(Flask):
         return super().make_response(rv)
 
 
+# flask app build
+# __name__是当前 Python 模块的名称,应用知道在哪里设置路径。
+# instance_relative_config=True相当与告诉应用配置文件相当与实例文件夹(instance folder)的相对地址,实例文件夹放置本地的配置文件
+# instance_path实例化目录所在地址
+app = IAOSFlask(__name__, instance_relative_config=True, instance_path=os.getcwd())
+
+
 def init():
     # TODO
     """常用基础数据缓存"""
     BasicDataCache().refresh()
 
 
-
 # start the app
 # noinspection SpellCheckingInspection
+# @app.cli.command("start-iaos")
+# @click.argument("env")
 def start():
     try:
         # init
         init()
         # start web server
         server_info = global_cfg.get_server_info()
-        # flask app build
-        app = IAOSFlask(__name__)
         # 蓝图  简单理解蓝图：就是将系统的代码模块化（组件化）
         from controller.blueprint import blue
         app.register_blueprint(blue)
