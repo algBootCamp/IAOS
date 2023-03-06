@@ -1,4 +1,4 @@
-from util.timeUtil import get_today_Ymd
+from util.time_util import get_today_Ymd
 
 
 def test_get_today_ymd():

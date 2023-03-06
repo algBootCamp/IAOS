@@ -1,5 +1,5 @@
 from db.myredis.redis_cli import RedisClient
-from util.objUtil import loads_dataframe
+from util.obj_util import loads_dataframe
 
 
 class TestRedisClient:

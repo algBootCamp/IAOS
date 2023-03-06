@@ -3,7 +3,7 @@ __author__ = 'carl'
 '''
 全局配置 当为单例
 '''
-from util.configreader import ConfigHelper
+from conf.configreader import ConfigHelper
 
 
 # noinspection PyTypeChecker

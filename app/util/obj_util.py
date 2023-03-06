@@ -5,6 +5,7 @@ import json
 import pickle
 
 
+# noinspection PyShadowingNames
 def obj_dict(obj):
     """实体类转dict"""
     obj_dict = obj.__dict__

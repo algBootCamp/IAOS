@@ -9,8 +9,8 @@ from db.myredis.redis_cli import RedisClient
 from quotation.captures.tsdata_capturer import TuShareDataCapturer
 import numpy as np
 
-from util.objUtil import dumps_dataframe
-from util.timeUtil import get_befortoday_Ymd, get_after_today_Ymd
+from util.obj_util import dumps_dataframe
+from util.time_util import get_befortoday_Ymd, get_after_today_Ymd
 
 '''
 --------------------------------------

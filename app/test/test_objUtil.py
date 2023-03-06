@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from entity.base_security import BaseSecurity
-from util.objUtil import obj_json
+from util.obj_util import obj_json
 
 
 class TestObjUtil(TestCase):
