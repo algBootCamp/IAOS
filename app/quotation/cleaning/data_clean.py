@@ -4,9 +4,12 @@ __author__ = 'carl'
 import logging
 import pandas as pd
 from pandas import DataFrame
+
+from db.myredis.redis_cli import RedisClient
 from quotation.captures.tsdata_capturer import TuShareDataCapturer
 import numpy as np
 
+from util.objUtil import dumps_dataframe
 from util.timeUtil import get_befortoday_Ymd, get_after_today_Ymd
 
 '''
@@ -78,6 +81,7 @@ class BaseDataClean(object):
     # 行情获取
     tsdatacapture: TuShareDataCapturer = TuShareDataCapturer()
     instance = None
+    rediscli = RedisClient().get_redis_cli()
 
     # 保证单例
     def __new__(cls, *args, **kwargs):
@@ -148,7 +152,7 @@ class BaseDataClean(object):
             exchange_data = ex_indu_data['ts_code'].tolist()
             exchange_data = [x.split('.')[1] for x in exchange_data]
             exchange_data = pd.Series(exchange_data)
-            print(exchange_data)
+            # print(exchange_data)
             ex_indu_data.insert(loc=len(ex_indu_data.columns), column='exchange', value=exchange_data)
             # 全部股票每日重要的基本面指标
             b_col = ['ts_code', 'pe', 'pe_ttm', 'pb', 'ps', 'ps_ttm', 'total_share', 'float_share', 'total_mv',
@@ -183,12 +187,12 @@ class BaseDataClean(object):
                 BaseDataClean.base_stock_infos = pd.merge(left=BaseDataClean.base_stock_infos, right=fina_indicator,
                                                           on='ts_code')
 
-                print(BaseDataClean.base_stock_infos)
-                print(BaseDataClean.base_stock_infos.head(1).to_dict())
-            pass
+                # print(BaseDataClean.base_stock_infos)
+                # print(BaseDataClean.base_stock_infos.head(1).to_dict())
+            res = cls.rediscli.set("base_stock_infos", dumps_dataframe(BaseDataClean.base_stock_infos))
+            # print("res:", res)
         except Exception as e:
             log_err.error("BaseDataClean.base_stock_infos init Failed!%s" % e)
-        pass
 
     @classmethod
     def init_stocks_pool(cls):
