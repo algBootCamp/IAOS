@@ -111,7 +111,7 @@ class RedisLock(object):
             raise Exception(f"{self._name} 未设置过期时间")
         elif result:
             raise Exception(f"未知错误码: {result}")
-        print("成功续锁时长：", renew_expire, "s")
+        # print("成功续锁时长：", renew_expire, "s")
 
     @staticmethod
     def _renew_scheduler(weak_self, interval, lock_event):

@@ -12,6 +12,8 @@ from flask import Flask, jsonify
 from entity.jsonresp import JsonResponse
 
 # 路径加载 [后续用作lib加载，便于部署]
+from scheduledtask.iaos_scheduler import IAOSTask
+
 reload(sys)
 sys.path.append('./')
 sys.path.append('../')
@@ -77,6 +79,8 @@ def init():
     # TODO
     """常用基础数据缓存"""
     BasicDataCache.refresh()
+    """定时任务开始"""
+    IAOSTask().start_task()
 
 
 # start the app
