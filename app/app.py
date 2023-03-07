@@ -6,10 +6,7 @@ import os
 import sys
 from importlib import reload
 
-import click
-from flask.cli import with_appcontext, FlaskGroup
-
-from cache.cache import BasicDataCache
+from quotation.cache.cache import BasicDataCache
 from conf.globalcfg import GlobalCfg
 from flask import Flask, jsonify
 from entity.jsonresp import JsonResponse
@@ -90,10 +87,10 @@ def start():
     try:
         # init
         init()
-        # start web server
+        # start web web
         server_info = global_cfg.get_server_info()
         # 蓝图  简单理解蓝图：就是将系统的代码模块化（组件化）
-        from controller.blueprint import blue
+        from web.controller.blueprint import blue
         app.register_blueprint(blue)
         app.config['DEBUG'] = False
         # app.config['SECRET_KEY'] = 'ABCDEFG'

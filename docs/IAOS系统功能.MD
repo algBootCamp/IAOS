@@ -28,24 +28,25 @@
 
 ---
 
-
-
 ## 后端功能模块说明
-- #### backtest:回测模块
-- #### cache：常用基础数据缓存模块
+- #### app.py：应用入口
 - #### conf：配置模块
-- #### controller：web接口模块
-- #### quotation：行情数据获取、清洗模块
+- #### web.controller：web接口模块
+- #### web.service：web逻辑模块
+- #### quotation.captures：行情数据获取
+- #### quotation.cleaning：行情数据清洗模块
+- #### quotation.cache：基础数据缓存
 - #### entity：实体类
-- #### db：持久层组件、dolphindb接口、脚本模块
-- #### docs：参考文档、功能介绍文档等
-- #### static：web前端静态文件
+- #### db：持久层组件、dolphindb接口、redis、脚本模块
 - #### scheduledtask：定时任务
 - #### quantization.securitypick：量化选证券/股模块
 - #### quantization.strategy：策略模块
 - #### quantization.timing：量化择时
 - #### quantization.factors：因子
-- #### templates：web前端模版文件
-- #### test：测试
+- #### quantization.backtest：回测模块
 - #### util：通用工具
-- #### app.py：应用入口
+- #### test：测试
+- #### docs：参考文档、功能介绍文档等
+- #### static：web前端静态文件
+- #### templates：web前端模版文件
+
