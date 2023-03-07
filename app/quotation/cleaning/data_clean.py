@@ -9,7 +9,6 @@ from db.myredis.redis_cli import RedisClient
 from quotation.captures.tsdata_capturer import TuShareDataCapturer
 import numpy as np
 
-from util.obj_util import dumps_dataframe
 from util.time_util import get_befortoday_Ymd, get_after_today_Ymd
 
 '''
@@ -56,8 +55,6 @@ class BaseDataClean(object):
     stocks_pool = DataFrame()
     # 亿 [万元--->亿元]
     billion = 10000.0 / 100000000.0
-    # 全部：基本面数据 交易数据 时间默认为当前交易日的上一个交易日
-    base_stock_infos = None
     # 股票分类字典
     # {
     #     "小盘股":{"行业1":stockinfoDataFrame,"行业2":stockinfoDataFrame,...},
@@ -118,13 +115,6 @@ class BaseDataClean(object):
         - 技术面：股价、涨跌幅、换手率、振幅、成交额、
                 涨跌停、成交量量比、委比
         """
-        # 市场、行业数据
-        ex_indu_data = None
-        # 全部股票每日重要的基本面指标
-        basics_data = None
-        # 交易数据 一次性获取最近一个日交易日所有股票的交易数据
-        trade_data = None
-
         need_col = ['ts_code', 'symbol', 'name', 'area', 'industry', 'market', 'list_date', 'exchange',
                     'pe', 'pe_ttm', 'pb', 'ps', 'ps_ttm', 'total_share', 'float_share', 'total_mv', 'circ_mv',
                     'dv_ratio', 'dv_ttm', 'changepercent', 'trade', 'volume', 'turnoverratio', 'amount',
@@ -142,11 +132,8 @@ class BaseDataClean(object):
                       ]
         rename_dict = dict(zip(need_col, rename_col))
         try:
-            # sw_data=BaseDataClean.tsdatacapture.get_sw_daily(trade_date=BaseDataClean.get_pretrade_date())
-            # print(sw_data.head(1).to_dict())
             cls.init_stocks_pool()
             # 市场、行业数据
-            # ei_col = ['ts_code', 'symbol', 'industry', 'exchange']
             ex_indu_data = BaseDataClean.stocks_pool
             # add exchange  df.insert(loc=len(df.columns), column='player', value=player_vals)
             exchange_data = ex_indu_data['ts_code'].tolist()
@@ -160,7 +147,7 @@ class BaseDataClean(object):
             basics_data: DataFrame = BaseDataClean.tsdatacapture.get_daily_basic(
                 trade_date=BaseDataClean.get_pretrade_date())[b_col]
             # print(basics_data.head(1).to_dict())
-            BaseDataClean.base_stock_infos = pd.merge(left=ex_indu_data, right=basics_data, on='ts_code')
+            base_stock_infos = pd.merge(left=ex_indu_data, right=basics_data, on='ts_code')
 
             # 股价1、涨跌幅1、成交额1、换手率1、  振幅、成交量量比、主力资金、委比、涨跌停
             # 近一个日交易日所有股票的交易数据
@@ -168,8 +155,8 @@ class BaseDataClean(object):
             t_col = ['code', 'changepercent', 'trade', 'volume', 'turnoverratio', 'amount']
             trade_data: DataFrame = BaseDataClean.tsdatacapture.get_today_all()[t_col]
             trade_data.rename(columns={'code': 'symbol'}, inplace=True)
-            BaseDataClean.base_stock_infos = pd.merge(left=BaseDataClean.base_stock_infos, right=trade_data,
-                                                      on='symbol')
+            base_stock_infos = pd.merge(left=base_stock_infos, right=trade_data,
+                                        on='symbol')
             # print(trade_data.head(1).to_dict())
 
             # TS股票代码 公告日期 报告期 基本每股收益  流动比率  速动比率  每股净资产 销售净利率  销售毛利率
@@ -184,15 +171,14 @@ class BaseDataClean(object):
             if fina_indicator is not None:
                 fina_indicator = fina_indicator[f_col]
                 fina_indicator.drop_duplicates(subset=['ts_code'], keep='first', inplace=True)
-                BaseDataClean.base_stock_infos = pd.merge(left=BaseDataClean.base_stock_infos, right=fina_indicator,
-                                                          on='ts_code')
-
-                # print(BaseDataClean.base_stock_infos)
-                # print(BaseDataClean.base_stock_infos.head(1).to_dict())
-            res = cls.rediscli.set("base_stock_infos", dumps_dataframe(BaseDataClean.base_stock_infos))
-            # print("res:", res)
+                base_stock_infos = pd.merge(left=base_stock_infos, right=fina_indicator,
+                                            on='ts_code')
+                # print(base_stock_infos)
+                # print(base_stock_infos.head(1).to_dict())
+            return base_stock_infos
         except Exception as e:
-            log_err.error("BaseDataClean.base_stock_infos init Failed!%s" % e)
+            log_err.error("base_stock_infos init Failed!%s" % e)
+            return None
 
     @classmethod
     def init_stocks_pool(cls):
@@ -204,7 +190,8 @@ class BaseDataClean(object):
             log_err.error("BaseDataClean.stocks_pool init Failed!%s" % e)
             raise Exception("BaseDataClean.stocks_pool init Failed! %s" % e)
 
-    def init_smb_industry_map(self):
+    @classmethod
+    def init_smb_industry_map(cls):
         """
         计算 smb_industry_map
         {
@@ -234,7 +221,7 @@ class BaseDataClean(object):
         # 此次划分标准：分析 流通股本的中位数、75%分位数、90%分位数
         # 中位数以下：小盘股
         # 90%分位数以上：大盘股
-        data_max, data_min, valuation_low, valuation_mid, valuation_high = self.get_data_percentile(
+        data_max, data_min, valuation_low, valuation_mid, valuation_high = cls.get_data_percentile(
             np.array(dfall.iloc[:].loc[:, 'float_share']).tolist(), 50, 75, 90)
         for idx, stkdata in dfall.iterrows():
             float_mv = stkdata["float_share"]
@@ -263,11 +250,12 @@ class BaseDataClean(object):
                 BaseDataClean.smb_industry_map['中盘股'][ele_industry] = BaseDataClean.smb_industry_map['中盘股'][
                     ele_industry].append(stkdata, ignore_index=True)
         # %s" % e
-        log.info(
-            "大盘股数量：{} 中盘股数量：{} 小盘股数量：{}".format(len(BaseDataClean.big_cap_stocks), len(BaseDataClean.mid_cap_stocks),
-                                                len(BaseDataClean.small_cap_stocks)))
-
+        log.info("大盘股数量：{} 中盘股数量：{} 小盘股数量：{}".format(
+            len(BaseDataClean.big_cap_stocks),
+            len(BaseDataClean.mid_cap_stocks),
+            len(BaseDataClean.small_cap_stocks)))
         log.info("BaseDataClean.smb_industry_map init sucess.")
+        return BaseDataClean.smb_industry_map
 
     @classmethod
     def get_data_percentile(cls, data: list, v_low=50.0, v_mid=83.83, v_high=94.22) -> tuple:

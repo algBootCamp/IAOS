@@ -18,9 +18,9 @@ def obj_dict(obj):
     return target_dict
 
 
-def dumps_dataframe(df):
+def dumps_data(df):
     """
-    dataframe序列化
+    data序列化
     """
     try:
         # print("df:", df)
@@ -30,9 +30,9 @@ def dumps_dataframe(df):
         raise e
 
 
-def loads_dataframe(content):
+def loads_data(content):
     """
-    dataframe反序列化
+    data反序列化
     """
     try:
         origin_data = pickle.loads(content)

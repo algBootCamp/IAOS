@@ -76,7 +76,7 @@ app = IAOSFlask(__name__, instance_relative_config=True, instance_path=os.getcwd
 def init():
     # TODO
     """常用基础数据缓存"""
-    BasicDataCache().refresh()
+    BasicDataCache.refresh()
 
 
 # start the app

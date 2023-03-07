@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from entity.base_security import BaseSecurity
-from util.obj_util import obj_json
+from util.obj_util import obj_dict
 
 
 class TestObjUtil(TestCase):
@@ -9,5 +9,5 @@ class TestObjUtil(TestCase):
         stk = BaseSecurity()
         stk.stk_id = "123"
         stk.name = "fsadf"
-        s = obj_json(stk)
+        s = obj_dict(stk)
         print(s)

@@ -4,9 +4,11 @@ __author__ = 'carl'
 import functools
 import logging
 from flask import Blueprint, request, redirect
-# noinspection SpellCheckingInspection
 from entity.jsonresp import JsonResponse
-from quantization.securitypick.stockpick01 import StockPick01
+from web.service.data_service import get_industry
+
+# contoller
+blue = Blueprint('blue', __name__)
 
 
 # --------- blueprint util --------- #
@@ -30,16 +32,9 @@ def blueprintlog(lg):
 # ----  log ------ #
 log = logging.getLogger("log_blueprint")
 log_err = logging.getLogger("log_err")
+
+
 # ----  log ------ #
-
-# contoller
-blue = Blueprint('blue', __name__)
-
-'''
-进行大小盘分类、行业分类，基于此根据股票财务和行情指标进行排序，通过设置参数和过滤值筛选股票。
-具体指标包括 动态市盈率、市净率、流通股本、总市值、每股公积金、每股收益、收入同比、利润同比、毛利率、净利润率等。
-'''
-stkp01: StockPick01 = StockPick01()
 
 
 # default
@@ -47,7 +42,7 @@ stkp01: StockPick01 = StockPick01()
 @blueprintlog(log)
 def main():
     # log.info("访问 %s 接口." % sys._getframe().f_code.co_name)
-    return 'Hello IAOS Server ~ '
+    return "I'm IAOS Server ~"
 
 
 @blue.route('/display_industry.do', methods=['POST', 'GET'])
@@ -56,13 +51,17 @@ def display_industry():
     """
     展示行业分类
     """
-    return list(StockPick01.industry_set)
+    return list(get_industry())
 
 
 @blueprintlog(log)
 @blue.route('/sel_stks_by_cons.do', methods=['POST'])
 def sel_stks_by_cons():
-    """条件选股"""
+    """
+    条件选股
+    进行大小盘分类、行业分类，基于此根据股票财务和行情指标进行排序，通过设置参数和过滤值筛选股票。
+    具体指标包括 动态市盈率、市净率、流通股本、总市值、每股公积金、每股收益、收入同比、利润同比、毛利率、净利润率等。
+    """
     if request.method == 'GET':
         return None
     else:
