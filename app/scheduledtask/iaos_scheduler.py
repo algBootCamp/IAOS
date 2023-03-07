@@ -5,6 +5,7 @@ import logging.config
 import os
 
 # from apscheduler.schedulers.gevent import GeventScheduler
+from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from db.myredis.redis_lock import RedisLock
@@ -18,7 +19,9 @@ log_err = logging.getLogger("log_err")
 定时任务
 1- 基础数据定时更新
 2- 选股策略每日执行，更新股票池 [每个策略模型一个任务，利用分布式锁尽可能进程间均匀执行]
+
 ！注意定时任务的时间间隔：数据缓存在策略前，策略之间的时间间隔保留是尽可能完全执行结束
+! trigger: 触发器类型：“date”、“cron”、“interval” 
 usage to see:
 app/test/apscheduler_testt.py
 https://apscheduler.readthedocs.io/en/3.x/
@@ -35,8 +38,13 @@ class IAOSTask(Singleton):
         self.uid = get_mac_address() + str(os.getpid())
         # 分布式锁
         self.rl = RedisLock(lock_name="IAOSTask", uid=self.uid, expire=30)
+        # 任务调度 执行器：后续根据实际情况调整 todo
+        self.executors = {
+            'default': ThreadPoolExecutor(max_workers=4),
+            'processorpool': ProcessPoolExecutor(max_workers=2)
+        }
         # 任务调度
-        self.scheduler = BackgroundScheduler(timezone='Asia/Shanghai')
+        self.scheduler = BackgroundScheduler(timezone='Asia/Shanghai', executors=self.executors)
 
     def __update_base_data(self):
         """
