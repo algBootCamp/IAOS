@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 __author__ = 'carl'
 
-import json
 import pickle
 
 
@@ -16,6 +15,11 @@ def obj_dict(obj):
     # json_str = json.dumps(obj=target_dict, default=lambda x: x.__dict__, sort_keys=False, indent=2)
     # json_str = json.dumps(obj=target_dict)
     return target_dict
+
+
+def method_call(obj, method_name, args):
+    """调用任意对象中的任意函数"""
+    return getattr(obj, method_name)(args)
 
 
 def dumps_data(df):

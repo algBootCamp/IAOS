@@ -6,7 +6,7 @@ import os
 import sys
 from importlib import reload
 
-from quotation.cache.cache import BasicDataCache
+from quotation.cache.cache import RemoteBasicDataCache, LocalBasicDataCache
 from conf.globalcfg import GlobalCfg
 from flask import Flask, jsonify
 from entity.jsonresp import JsonResponse
@@ -78,7 +78,8 @@ app = IAOSFlask(__name__, instance_relative_config=True, instance_path=os.getcwd
 def init():
     # TODO
     """常用基础数据缓存"""
-    BasicDataCache.refresh()
+    RemoteBasicDataCache.refresh()
+    LocalBasicDataCache.refresh()
     """定时任务开始"""
     IAOSTask().start_task()
 

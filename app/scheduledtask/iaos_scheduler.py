@@ -5,12 +5,11 @@ import logging.config
 import os
 
 # from apscheduler.schedulers.gevent import GeventScheduler
-from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from db.myredis.redis_lock import RedisLock
 from entity.singleton import Singleton
-from quotation.cache.cache import BasicDataCache
+from quotation.cache.cache import BasicDataCache, LocalBasicDataCache, RemoteBasicDataCache
 from util.sys_util import get_mac_address
 
 log = logging.getLogger("log_schedtask")
@@ -39,26 +38,38 @@ class IAOSTask(Singleton):
         # 分布式锁
         self.rl = RedisLock(lock_name="IAOSTask", uid=self.uid, expire=30)
         # 任务调度 执行器：后续根据实际情况调整 todo
-        self.executors = {
-            'default': ThreadPoolExecutor(max_workers=4),
-            'processorpool': ProcessPoolExecutor(max_workers=2)
-        }
+        # self.executors = {
+        #     'default': ThreadPoolExecutor(max_workers=4),
+        #     'processorpool': ProcessPoolExecutor(max_workers=2)
+        # }
         # 任务调度
-        self.scheduler = BackgroundScheduler(timezone='Asia/Shanghai', executors=self.executors)
+        self.scheduler = BackgroundScheduler(timezone='Asia/Shanghai')
 
-    def __update_base_data(self):
+    def __update_remote_base_data(self):
         """
-        基础数据定时更新
+        远程基础数据定时更新
         """
         try:
             if self.rl.lock():
-                log.info("start IAOSTask update_base_data.")
-                BasicDataCache.refresh()
-                log.info("execute IAOSTask update_base_data success.")
+                log.info("start IAOSTask __update_remote_base_data.")
+                RemoteBasicDataCache.refresh()
+                log.info("execute IAOSTask __update_remote_base_data success.")
         except Exception as e:
-            log_err.error("execute IAOSTask update_base_data failed. {}".format(e))
+            log_err.error("execute IAOSTask __update_remote_base_data failed. {}".format(e))
         finally:
             self.rl.unlock()
+
+    def __update_local_base_data(self):
+        """
+        本地基础数据定时加载更新
+        """
+        try:
+
+            log.info("start IAOSTask __update_local_base_data.")
+            LocalBasicDataCache.refresh()
+            log.info("execute IAOSTask __update_local_base_data success.")
+        except Exception as e:
+            log_err.error("execute IAOSTask __update_local_base_data failed. {}".format(e))
 
     def __pick_stock(self):
         """
@@ -77,8 +88,12 @@ class IAOSTask(Singleton):
 
     def start_task(self):
         # 从2023年3月1日开始后的的每周一到周五的17点59分执行
-        self.scheduler.add_job(self.__update_base_data, 'cron', day_of_week='mon-fri', hour=17, minute=59,
+        self.scheduler.add_job(self.__update_remote_base_data, 'cron', day_of_week='mon-fri', hour=17, minute=59,
                                start_date='2023-3-1', end_date='2099-3-1')
+        # 从2023年3月1日开始后的的每周一到周五的18点30分执行
+        self.scheduler.add_job(self.__update_remote_base_data, 'cron', day_of_week='mon-fri', hour=18, minute=30,
+                               start_date='2023-3-1', end_date='2099-3-1')
+
         # 从2023年3月1日开始后的的每周一到周五的23点23分执行
         # self.scheduler.add_job(self.__pick_stock, 'cron', day_of_week='mon-fri', hour=23, minute=23,
         #                        start_date='2023-3-1')
