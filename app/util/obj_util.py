@@ -22,7 +22,7 @@ def method_call(obj, method_name, args):
     if hasattr(obj, method_name):
         return getattr(obj, method_name)(args)
     else:
-        raise ModuleNotFoundError("{} not has attr {}".format(obj, method_name))
+        raise ModuleNotFoundError("{} has no attr {}".format(obj, method_name))
 
 
 def dumps_data(df):

@@ -30,7 +30,7 @@ class ConditonStockPick01(ConditonStockPick):
         if self.base_stock_infos is None:
             self.base_stock_infos = LocalBasicDataCache.load_base_stock_infos()
 
-    def get_target_data(self, **condtions) -> dict:
+    def get_target_data(self, **condtions) -> DataFrame:
         condtions_col = ['ts_code', 'symbol', 'name', 'area', 'industry', 'market', 'list_date', 'exchange',
                          'pe', 'pe_ttm', 'pb', 'ps', 'ps_ttm', 'total_share', 'float_share', 'total_mv', 'circ_mv',
                          'dv_ratio', 'dv_ttm', 'changepercent', 'trade', 'volume', 'turnoverratio', 'amount',
@@ -57,17 +57,14 @@ class ConditonStockPick01(ConditonStockPick):
 
         return self.__retrieval_data(condtions_dict)
 
-    def __retrieval_data(self, condtions_dict) -> dict:
+    def __retrieval_data(self, condtions_dict) -> DataFrame:
         data: DataFrame = None
         for condtion_key, condtion in condtions_dict.items():
             if data is not None:
                 data = pd.merge(data, method_call(self, "_ConditonStockPick01__" + condtion_key, condtion), how="inner")
             else:
                 data = method_call(self, "_ConditonStockPick01__" + condtion_key, condtion)
-        if data is not None:
-            return data.to_dict()
-        else:
-            return None
+        return data
 
     def __symbol(self, symbol):
         data = self.base_stock_infos.query("symbol=='{}'".format(symbol))

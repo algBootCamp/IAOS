@@ -2,12 +2,16 @@
 __author__ = 'carl'
 
 import functools
+import json
 import logging
-from flask import Blueprint, request, redirect
+
+from flask import Blueprint, request
+
 from entity.jsonresp import JsonResponse
 from web.service.data_service import get_industry
-
 # contoller
+from web.service.quantization_service import get_stks_by_cons
+
 blue = Blueprint('blue', __name__)
 
 
@@ -65,9 +69,9 @@ def sel_stks_by_cons():
     if request.method == 'GET':
         return None
     else:
-        pass
-
-    pass
+        condtions = request.get_data().decode()
+        condtions_dict = json.loads(condtions)
+        return get_stks_by_cons(condtions_dict)
 
 
 @blue.errorhandler(Exception)

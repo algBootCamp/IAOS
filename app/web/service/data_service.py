@@ -2,9 +2,10 @@
 __author__ = 'carl'
 
 import logging
+
 from db.myredis.redis_cli import RedisClient
-from util.obj_util import loads_data
 from quotation.cache.cache import LocalBasicDataCache
+from util.obj_util import loads_data
 
 # ----  log ------ #
 log = logging.getLogger("log_blueprint")
