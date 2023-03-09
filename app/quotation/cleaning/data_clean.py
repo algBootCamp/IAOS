@@ -177,10 +177,11 @@ class BaseDataClean(object):
                 # print(base_stock_infos.head(1).to_dict())
             # '总市值', '流通市值'[万元--->亿元]
             # '总股本', '流通股本'[万股--->亿股]
-            base_stock_infos['total_share'] = base_stock_infos['total_share'] * BaseDataClean.billion
-            base_stock_infos['float_share'] = base_stock_infos['float_share'] * BaseDataClean.billion
-            base_stock_infos['total_mv'] = base_stock_infos['total_mv'] * BaseDataClean.billion
-            base_stock_infos['circ_mv'] = base_stock_infos['circ_mv'] * BaseDataClean.billion
+            if base_stock_infos is not None:
+                base_stock_infos['total_share'] = base_stock_infos['total_share'] * BaseDataClean.billion
+                base_stock_infos['float_share'] = base_stock_infos['float_share'] * BaseDataClean.billion
+                base_stock_infos['total_mv'] = base_stock_infos['total_mv'] * BaseDataClean.billion
+                base_stock_infos['circ_mv'] = base_stock_infos['circ_mv'] * BaseDataClean.billion
             return base_stock_infos
         except Exception as e:
             log_err.error("base_stock_infos init Failed!%s" % e)
