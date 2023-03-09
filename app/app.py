@@ -11,7 +11,6 @@ from flask import Flask, jsonify
 from entity.jsonresp import JsonResponse
 
 # 路径加载 [后续用作lib加载，便于部署]
-from scheduledtask.iaos_scheduler import IAOSTask
 
 reload(sys)
 sys.path.append('./')
@@ -77,6 +76,7 @@ app = IAOSFlask(__name__, instance_relative_config=True, instance_path=os.getcwd
 def init():
     # TODO
     """常用基础数据缓存"""
+    from scheduledtask.iaos_scheduler import IAOSTask
     from quotation.cache.cache import RemoteBasicDataCache, LocalBasicDataCache
     RemoteBasicDataCache.refresh()
     LocalBasicDataCache.refresh()
