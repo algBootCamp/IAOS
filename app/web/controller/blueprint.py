@@ -58,8 +58,8 @@ def display_industry():
     return list(get_industry())
 
 
-@blueprintlog(log)
 @blue.route('/sel_stks_by_cons.do', methods=['POST'])
+@blueprintlog(log)
 def sel_stks_by_cons():
     """
     条件选股
