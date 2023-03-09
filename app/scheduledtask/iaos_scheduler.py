@@ -9,7 +9,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 from db.myredis.redis_lock import RedisLock
 from entity.singleton import Singleton
-from quotation.cache.cache import BasicDataCache, LocalBasicDataCache, RemoteBasicDataCache
+from quotation.cache.cache import LocalBasicDataCache, RemoteBasicDataCache
 from util.sys_util import get_mac_address
 
 log = logging.getLogger("log_schedtask")

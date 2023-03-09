@@ -4,7 +4,7 @@ __author__ = 'carl'
 import logging
 from db.myredis.redis_cli import RedisClient
 from util.obj_util import loads_data
-from quotation.cache.cache import BasicDataCache
+from quotation.cache.cache import LocalBasicDataCache
 
 # ----  log ------ #
 log = logging.getLogger("log_blueprint")
@@ -21,7 +21,7 @@ def get_industry():
     rediscli = __getrediscli()
     res = rediscli.get("industry_set")
     if res is None:
-        BasicDataCache.store_smb_industry_map()
+        LocalBasicDataCache.store_smb_industry_map()
         res = rediscli.get("industry_set")
     return loads_data(res)
 

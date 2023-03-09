@@ -20,7 +20,8 @@ log_err = logging.getLogger("log_err")
 
 # ----  log ------ #
 
-# TODO :待测试 ；list_date', 'ann_date', 'end_date', 未检索
+# TODO list_date', 'ann_date', 'end_date', 未检索
+# noinspection DuplicatedCode,PyUnusedLocal
 class ConditonStockPick01(ConditonStockPick):
 
     def __init__(self):
@@ -48,7 +49,7 @@ class ConditonStockPick01(ConditonStockPick):
         # enable_condtions_dict = dict(zip(condtions_col, condtions_name))
         condtions_dict = dict()
         # 条件校验
-        for condtion_key, condtion in condtions:
+        for condtion_key, condtion in condtions.items():
             if condtions_col.__contains__(condtion_key):
                 condtions_dict[condtion_key] = condtion
             else:
@@ -58,35 +59,38 @@ class ConditonStockPick01(ConditonStockPick):
 
     def __retrieval_data(self, condtions_dict) -> dict:
         data: DataFrame = None
-        for condtion_key, condtion in condtions_dict:
+        for condtion_key, condtion in condtions_dict.items():
             if data is not None:
-                data = pd.merge(data, method_call(self, "__" + condtion_key, condtion), how="inner")
+                data = pd.merge(data, method_call(self, "_ConditonStockPick01__" + condtion_key, condtion), how="inner")
             else:
-                data = method_call(self, "__" + condtion_key, condtion)
-        return data.to_dict()
+                data = method_call(self, "_ConditonStockPick01__" + condtion_key, condtion)
+        if data is not None:
+            return data.to_dict()
+        else:
+            return None
 
     def __symbol(self, symbol):
-        data = self.base_stock_infos.query("symbol=={}".format(symbol))
+        data = self.base_stock_infos.query("symbol=='{}'".format(symbol))
         return data
 
     def __name(self, name):
-        data = self.base_stock_infos.query("name=={}".format(name))
+        data = self.base_stock_infos.query("name=='{}'".format(name))
         return data
 
     def __area(self, area):
-        data = self.base_stock_infos.query("area=={}".format(area))
+        data = self.base_stock_infos.query("area=='{}'".format(area))
         return data
 
     def __industry(self, industry):
-        data = self.base_stock_infos.query("industry=={}".format(industry))
+        data = self.base_stock_infos.query("industry=='{}'".format(industry))
         return data
 
     def __market(self, market):
-        data = self.base_stock_infos.query("market=={}".format(market))
+        data = self.base_stock_infos.query("market=='{}'".format(market))
         return data
 
     def __exchange(self, exchange):
-        data = self.base_stock_infos.query("exchange=={}".format(exchange))
+        data = self.base_stock_infos.query("exchange=='{}'".format(exchange))
         return data
 
     def __pe(self, val: list):

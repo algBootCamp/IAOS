@@ -115,7 +115,7 @@ class LocalBasicDataCache(object):
             cls.rediscli.set("base_stock_infos", dumps_data(cls.base_stock_infos))
 
     @classmethod
-    def load_base_stock_infos(cls):
+    def load_smb_industry_map(cls):
         """
         加载下述数据：
         {
