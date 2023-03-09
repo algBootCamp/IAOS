@@ -2,13 +2,13 @@
 __author__ = 'carl'
 
 import logging
+
+import numpy as np
 import pandas as pd
 from pandas import DataFrame
 
 from db.myredis.redis_cli import RedisClient
 from quotation.captures.tsdata_capturer import TuShareDataCapturer
-import numpy as np
-
 from util.time_util import get_befortoday_Ymd, get_after_today_Ymd
 
 '''
@@ -53,7 +53,7 @@ class BaseDataClean(object):
     pretrade_date: str = None
     # 股票池 [上市]
     stocks_pool = DataFrame()
-    # 亿 [万元--->亿元]
+    # 亿 [万--->亿]
     billion = 10000.0 / 100000000.0
     # 股票分类字典
     # {
@@ -175,6 +175,12 @@ class BaseDataClean(object):
                                             on='ts_code')
                 # print(base_stock_infos)
                 # print(base_stock_infos.head(1).to_dict())
+            # '总市值', '流通市值'[万元--->亿元]
+            # '总股本', '流通股本'[万股--->亿股]
+            base_stock_infos['total_share'] = base_stock_infos['total_share'] * BaseDataClean.billion
+            base_stock_infos['total_share'] = base_stock_infos['total_share'] * BaseDataClean.billion
+            base_stock_infos['total_mv'] = base_stock_infos['total_mv'] * BaseDataClean.billion
+            base_stock_infos['circ_mv'] = base_stock_infos['circ_mv'] * BaseDataClean.billion
             return base_stock_infos
         except Exception as e:
             log_err.error("base_stock_infos init Failed!%s" % e)
