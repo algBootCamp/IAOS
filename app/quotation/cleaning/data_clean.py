@@ -130,7 +130,7 @@ class BaseDataClean(object):
                       '销售毛利率', '净利润率', '营业利润率', '净资产收益率', '总资产报酬率', '总资产净利润', '投入资本回报率', '年化净资产收益率',
                       '年化总资产报酬率', '资产负债率', '营业利润同比增长率', '利润总额同比增长率', '营业总收入同比增长率', '营业收入同比增长率', '净资产同比增长率', '更新标识'
                       ]
-        rename_dict = dict(zip(need_col, rename_col))
+        # rename_dict = dict(zip(need_col, rename_col))
         try:
             cls.init_stocks_pool()
             # 市场、行业数据
@@ -178,7 +178,7 @@ class BaseDataClean(object):
             # '总市值', '流通市值'[万元--->亿元]
             # '总股本', '流通股本'[万股--->亿股]
             base_stock_infos['total_share'] = base_stock_infos['total_share'] * BaseDataClean.billion
-            base_stock_infos['total_share'] = base_stock_infos['total_share'] * BaseDataClean.billion
+            base_stock_infos['float_share'] = base_stock_infos['float_share'] * BaseDataClean.billion
             base_stock_infos['total_mv'] = base_stock_infos['total_mv'] * BaseDataClean.billion
             base_stock_infos['circ_mv'] = base_stock_infos['circ_mv'] * BaseDataClean.billion
             return base_stock_infos
