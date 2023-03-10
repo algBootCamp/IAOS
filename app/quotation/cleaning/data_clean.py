@@ -112,20 +112,22 @@ class BaseDataClean(object):
           1. 估值指标：市盈率、市盈率TTM、市净率、市销率、市销率TTM、总股本、总市值、流通股本、流通市值】  -- basics_data  done
           2. 财务指标：股息率、股息率TTM、资产负债率、每股净资产、净利润率（净利率）、净资产收益率、毛利率、每股收益、利润总额同比增长率
                     净利润、净利润增长率、营业收入、每股现金流、股东户数、营收增长率
-        - 技术面：股价、涨跌幅、换手率、振幅、成交额、
-                涨跌停、成交量量比、委比
+        - 技术面：股价、涨跌幅、换手率、振幅、成交额、成交量量比
+                涨跌停、委比
         """
         need_col = ['ts_code', 'symbol', 'name', 'area', 'industry', 'market', 'list_date', 'exchange',
+                    'close', 'turnover_rate', 'turnover_rate_f', 'volume_ratio',
                     'pe', 'pe_ttm', 'pb', 'ps', 'ps_ttm', 'total_share', 'float_share', 'total_mv', 'circ_mv',
-                    'dv_ratio', 'dv_ttm', 'changepercent', 'trade', 'volume', 'turnoverratio', 'amount',
+                    'dv_ratio', 'dv_ttm', 'changepercent', 'trade', 'volume', 'amount',
                     'ann_date', 'end_date', 'eps', 'current_ratio', 'quick_ratio', 'bps',
                     'netprofit_margin', 'grossprofit_margin', 'profit_to_gr', 'op_of_gr', 'roe',
                     'roa', 'npta', 'roic', 'roe_yearly', 'roa2_yearly', 'debt_to_assets', 'op_yoy',
                     'ebt_yoy', 'tr_yoy', 'or_yoy', 'equity_yoy', 'update_flag'
                     ]
         rename_col = ['TS股票代码', '股票代码', '股票名称', '地区', '行业', '市场', '上市日期', '交易所',
+                      '当日收盘价','换手率（%）','换手率（自由流通股）','量比',
                       '市盈率', '市盈率TTM', '市净率', '市销率', '市销率TTM', '总股本', '流通股本', '总市值', '流通市值',
-                      '股息率', '股息率TTM', '涨跌幅', '现价', '成交量', '换手率', '成交额',
+                      '股息率', '股息率TTM', '涨跌幅', '现价', '成交量', '成交额',
                       '公告日期', '报告期', '基本每股收益', '流动比率', '速动比率', '每股净资产', '销售净利率',
                       '销售毛利率', '净利润率', '营业利润率', '净资产收益率', '总资产报酬率', '总资产净利润', '投入资本回报率', '年化净资产收益率',
                       '年化总资产报酬率', '资产负债率', '营业利润同比增长率', '利润总额同比增长率', '营业总收入同比增长率', '营业收入同比增长率', '净资产同比增长率', '更新标识'
@@ -142,17 +144,18 @@ class BaseDataClean(object):
             # print(exchange_data)
             ex_indu_data.insert(loc=len(ex_indu_data.columns), column='exchange', value=exchange_data)
             # 全部股票每日重要的基本面指标
-            b_col = ['ts_code', 'pe', 'pe_ttm', 'pb', 'ps', 'ps_ttm', 'total_share', 'float_share', 'total_mv',
+            # 'close', 'turnover_rate','turnover_rate_f', 'volume_ratio',
+            b_col = ['ts_code', 'close', 'turnover_rate','turnover_rate_f', 'volume_ratio','pe', 'pe_ttm', 'pb', 'ps', 'ps_ttm', 'total_share', 'float_share', 'total_mv',
                      'circ_mv', 'dv_ratio', 'dv_ttm']
             basics_data: DataFrame = BaseDataClean.tsdatacapture.get_daily_basic(
                 trade_date=BaseDataClean.get_pretrade_date())[b_col]
             # print(basics_data.head(1).to_dict())
             base_stock_infos = pd.merge(left=ex_indu_data, right=basics_data, on='ts_code')
 
-            # 股价1、涨跌幅1、成交额1、换手率1、  振幅、成交量量比、主力资金、委比、涨跌停
+            # 股价1、涨跌幅1、成交额1  振幅、主力资金、委比、涨跌停
             # 近一个日交易日所有股票的交易数据
             # 代码,涨跌幅,现价,成交量,换手率,成交额,
-            t_col = ['code', 'changepercent', 'trade', 'volume', 'turnoverratio', 'amount']
+            t_col = ['code', 'changepercent', 'trade', 'volume', 'amount']
             trade_data: DataFrame = BaseDataClean.tsdatacapture.get_today_all()[t_col]
             trade_data.rename(columns={'code': 'symbol'}, inplace=True)
             base_stock_infos = pd.merge(left=base_stock_infos, right=trade_data,

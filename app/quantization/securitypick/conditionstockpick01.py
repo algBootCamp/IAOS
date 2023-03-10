@@ -32,16 +32,18 @@ class ConditonStockPick01(ConditonStockPick):
 
     def get_target_data(self, **condtions) -> DataFrame:
         condtions_col = ['ts_code', 'symbol', 'name', 'area', 'industry', 'market', 'list_date', 'exchange',
+                         'close', 'turnover_rate', 'turnover_rate_f', 'volume_ratio',
                          'pe', 'pe_ttm', 'pb', 'ps', 'ps_ttm', 'total_share', 'float_share', 'total_mv', 'circ_mv',
-                         'dv_ratio', 'dv_ttm', 'changepercent', 'trade', 'volume', 'turnoverratio', 'amount',
+                         'dv_ratio', 'dv_ttm', 'changepercent', 'trade', 'volume', 'amount',
                          'ann_date', 'end_date', 'eps', 'current_ratio', 'quick_ratio', 'bps',
                          'netprofit_margin', 'grossprofit_margin', 'profit_to_gr', 'op_of_gr', 'roe',
                          'roa', 'npta', 'roic', 'roe_yearly', 'roa2_yearly', 'debt_to_assets', 'op_yoy',
                          'ebt_yoy', 'tr_yoy', 'or_yoy', 'equity_yoy', 'update_flag'
                          ]
         condtions_name = ['TS股票代码', '股票代码', '股票名称', '地区', '行业', '市场', '上市日期', '交易所',
+                          '当日收盘价', '换手率（%）', '换手率（自由流通股）', '量比',
                           '市盈率', '市盈率TTM', '市净率', '市销率', '市销率TTM', '总股本', '流通股本', '总市值', '流通市值',
-                          '股息率', '股息率TTM', '涨跌幅', '现价', '成交量', '换手率', '成交额',
+                          '股息率', '股息率TTM', '涨跌幅', '现价', '成交量', '成交额',
                           '公告日期', '报告期', '基本每股收益', '流动比率', '速动比率', '每股净资产', '销售净利率',
                           '销售毛利率', '净利润率', '营业利润率', '净资产收益率', '总资产报酬率', '总资产净利润', '投入资本回报率', '年化净资产收益率',
                           '年化总资产报酬率', '资产负债率', '营业利润同比增长率', '利润总额同比增长率', '营业总收入同比增长率', '营业收入同比增长率', '净资产同比增长率', '更新标识'
@@ -185,11 +187,26 @@ class ConditonStockPick01(ConditonStockPick):
             (self.base_stock_infos["volume"] >= min_val) & (self.base_stock_infos["volume"] < max_val)]
         return data
 
-    def __turnoverratio(self, val: list):
+    def __volume_ratio(self, val: list):
         min_val = val[0]
         max_val = val[1]
         data = self.base_stock_infos[
-            (self.base_stock_infos["turnoverratio"] >= min_val) & (self.base_stock_infos["turnoverratio"] < max_val)]
+            (self.base_stock_infos["volume_ratio"] >= min_val) & (self.base_stock_infos["volume_ratio"] < max_val)]
+        return data
+
+    def __turnover_rate_f(self, val: list):
+        min_val = val[0]
+        max_val = val[1]
+        data = self.base_stock_infos[
+            (self.base_stock_infos["turnover_rate_f"] >= min_val) & (
+                    self.base_stock_infos["turnover_rate_f"] < max_val)]
+        return data
+
+    def __turnover_rate(self, val: list):
+        min_val = val[0]
+        max_val = val[1]
+        data = self.base_stock_infos[
+            (self.base_stock_infos["turnover_rate"] >= min_val) & (self.base_stock_infos["turnover_rate"] < max_val)]
         return data
 
     def __amount(self, val: list):

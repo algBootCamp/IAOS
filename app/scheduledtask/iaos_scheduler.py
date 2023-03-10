@@ -88,10 +88,10 @@ class IAOSTask(Singleton):
 
     def start_task(self):
         # 从2023年3月1日开始后的的每周一到周五的17点59分执行
-        self.scheduler.add_job(self.__update_remote_base_data, 'cron', day_of_week='mon-fri', hour=17, minute=59,
+        self.scheduler.add_job(self.__update_remote_base_data, 'cron', day_of_week='mon-fri', hour=19, minute=47,
                                start_date='2023-3-1', end_date='2099-3-1')
         # 从2023年3月1日开始后的的每周一到周五的18点30分执行
-        self.scheduler.add_job(self.__update_remote_base_data, 'cron', day_of_week='mon-fri', hour=18, minute=30,
+        self.scheduler.add_job(self.__update_remote_base_data, 'cron', day_of_week='mon-fri', hour=19, minute=52,
                                start_date='2023-3-1', end_date='2099-3-1')
 
         # 从2023年3月1日开始后的的每周一到周五的23点23分执行
