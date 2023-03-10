@@ -22,7 +22,7 @@ def get_industry():
     rediscli = __getrediscli()
     res = rediscli.get("industry_set")
     if res is None:
-        LocalBasicDataCache.store_smb_industry_map()
+        LocalBasicDataCache.load_smb_industry_map()
         res = rediscli.get("industry_set")
     return loads_data(res)
 
