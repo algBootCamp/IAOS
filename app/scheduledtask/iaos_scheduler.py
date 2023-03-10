@@ -5,11 +5,13 @@ import logging.config
 import os
 
 # from apscheduler.schedulers.gevent import GeventScheduler
+from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
+from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from db.myredis.redis_lock import RedisLock
 from entity.singleton import Singleton
-from quotation.cache.cache import LocalBasicDataCache, RemoteBasicDataCache
+from quotation.cache.cache import RemoteBasicDataCache, LocalBasicDataCache
 from util.sys_util import get_mac_address
 
 log = logging.getLogger("log_schedtask")
@@ -30,6 +32,7 @@ https://blog.csdn.net/sxdgy_/article/details/126377513
 
 
 # TODO
+# noinspection PyMethodMayBeStatic
 class IAOSTask(Singleton):
 
     def __init__(self):
@@ -37,13 +40,20 @@ class IAOSTask(Singleton):
         self.uid = get_mac_address() + str(os.getpid())
         # 分布式锁
         self.rl = RedisLock(lock_name="IAOSTask", uid=self.uid, expire=30)
+
         # 任务调度 执行器：后续根据实际情况调整 todo
-        # self.executors = {
-        #     'default': ThreadPoolExecutor(max_workers=4),
-        #     'processorpool': ProcessPoolExecutor(max_workers=2)
-        # }
+        self.executors = {
+            'default': ThreadPoolExecutor(max_workers=4),
+            'processorpool': ProcessPoolExecutor(max_workers=2)
+        }
+        self.job_defaults = {
+            'coalesce': False,  # 关闭新job的合并，当job延误或者异常原因未执行时
+            'max_instances': 4  # 并发运行新job默认最大实例多少
+        }
         # 任务调度
-        self.scheduler = BackgroundScheduler(timezone='Asia/Shanghai')
+        self.scheduler = BackgroundScheduler()
+        self.scheduler.configure(jobstore='default', executors=self.executors,
+                                 job_defaults=self.job_defaults, timezone='Asia/Shanghai')
 
     def __update_remote_base_data(self):
         """
@@ -86,17 +96,46 @@ class IAOSTask(Singleton):
         finally:
             self.rl.unlock()
 
+    def __job_exception_listener(self, event):
+        """事件监听"""
+        if event.exception:
+            log_err.error("The job {} crashed : {}.".format(event, event.exception))
+        else:
+            pass
+            # log.info('The job {} worked .'.format(event))
+
+    def remove_job(self, job_id):
+        """删除任务"""
+        self.scheduler.remove_job(job_id)
+        log.info('The job {} removed.'.format(job_id))
+
+    def pause_job(self, job_id):
+        """暂停任务"""
+        self.scheduler.pause_job(job_id)
+        log.info('The job {} paused.'.format(job_id))
+
+    def resume_job(self, job_id):
+        """恢复任务"""
+        self.scheduler.resume_job(job_id)
+        log.info('The job {} resumed'.format(job_id))
+
+    def get_jobs(self):
+        """获取所有job信息"""
+        return self.scheduler.get_jobs()
+
     def start_task(self):
-        # 从2023年3月1日开始后的的每周一到周五的17点59分执行
-        self.scheduler.add_job(self.__update_remote_base_data, 'cron', day_of_week='mon-fri', hour=19, minute=47,
-                               start_date='2023-3-1', end_date='2099-3-1')
-        # 从2023年3月1日开始后的的每周一到周五的18点30分执行
-        self.scheduler.add_job(self.__update_remote_base_data, 'cron', day_of_week='mon-fri', hour=19, minute=52,
-                               start_date='2023-3-1', end_date='2099-3-1')
+        # 从2023年3月1日开始后的的每天的8点0分执行
+        self.scheduler.add_job(self.__update_remote_base_data, trigger='cron', day_of_week='0-6', hour=8, minute=0,
+                               start_date='2023-3-1', end_date='2099-3-1', id='1')
+        # 从2023年3月1日开始后的的每天的8点5分执行
+        self.scheduler.add_job(self.__update_local_base_data, trigger='cron', day_of_week='0-6', hour=8, minute=5,
+                               start_date='2023-3-1', end_date='2099-3-1', id='2')
 
         # 从2023年3月1日开始后的的每周一到周五的23点23分执行
         # self.scheduler.add_job(self.__pick_stock, 'cron', day_of_week='mon-fri', hour=23, minute=23,
         #                        start_date='2023-3-1')
+        # 设置任务监听
+        self.scheduler.add_listener(self.__job_exception_listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
         # 开始执行调度
         self.scheduler.start()
         log.info("IAOSTask scheduler running ... ")
