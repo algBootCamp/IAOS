@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 __author__ = 'carl'
 
+import warnings
+
+import tushare as ts
 from pandas import DataFrame
 
 from conf.globalcfg import GlobalCfg
-import tushare as ts
-import warnings
+from util.decorator_util import retry
 
 warnings.filterwarnings("ignore")
 '''
@@ -34,6 +36,7 @@ class TuShareDataCapturer(object):
     '''----------------------以下：沪深股票数据----------------------'''
     '''----------------------以下：基础数据----------------------'''
 
+    @retry(max_retry=3, time_interval=2)
     def get_stock_list(self) -> DataFrame:
         """
         查询当前所有正常上市交易的股票列表
@@ -58,6 +61,7 @@ class TuShareDataCapturer(object):
         df = self.pro.stock_basic(list_status='L')
         return df
 
+    @retry(max_retry=3, time_interval=2)
     def get_bak_basic(self, ts_code: str = None, trade_date: str = None) -> DataFrame:
         """
         获取备用基础列表，数据从2016年开始
@@ -93,53 +97,63 @@ class TuShareDataCapturer(object):
         df = self.pro.bak_basic(ts_code=ts_code, trade_date=trade_date)
         return df
 
+    @retry(max_retry=3, time_interval=1)
     def get_trade_cal(self, exchange: str = 'SSE', start_date: str = '20220101', end_date: str = '20990101',
                       is_open: str = '1') -> DataFrame:
         """获取各大交易所交易日历数据 交易所 SSE上交所 SZSE深交所"""
         df = self.pro.trade_cal(exchange=exchange, start_date=start_date, end_date=end_date, is_open=is_open)
         return df
 
+    @retry(max_retry=3, time_interval=1)
     def get_stock_company(self, ts_code: str = None, exchange: str = None) -> DataFrame:
         """上市公司基本信息 获取上市公司基础信息，单次提取4500条，可以根据交易所分批提取"""
         df = self.pro.stock_company(exchange=exchange, ts_code=ts_code,
                                     fields='ts_code,chairman,manager,secretary,reg_capital,setup_date,province')
         return df
 
+    @retry(max_retry=3, time_interval=1)
     def get_stk_rewards(self, ts_code: str = None, end_date: str = None) -> DataFrame:
         """管理层薪酬和持股 end_date:报告期  ts_code: TS股票代码，支持单个或多个代码输入"""
         df = self.pro.stk_rewards(ts_code=ts_code, end_date=end_date)
         return df
 
-    # 获取新股上市列表数据 IPO新股列表 start_date:上网发行开始日期  end_date:上网发行结束日期 限量：单次最大2000条
-    # s_code股票代码（支持多个股票同时提取，逗号分隔）
+    @retry(max_retry=3, time_interval=1)
     def get_new_share(self, start_date: str = None, end_date: str = None) -> DataFrame:
+        """
+        获取新股上市列表数据 IPO新股列表
+        start_date:上网发行开始日期
+        end_date:上网发行结束日期 限量：单次最大2000条
+        s_code股票代码（支持多个股票同时提取，逗号分隔）
+        """
         df = self.pro.new_share(start_date=start_date, end_date=end_date)
         return df
 
     '''----------------------以下：行情数据----------------------'''
 
-    # A股日线行情 (未复权行情) 数据说明：交易日每天15点～16点之间入库。本接口是 未复权行情，停牌期间不提供数据
+    @retry(max_retry=3, time_interval=2)
     def get_daily(self, ts_code: str = None, trade_date: str = None, start_date: str = None,
                   end_date: str = None) -> DataFrame:
+        """
+        A股日线行情 (未复权行情) 数据说明：交易日每天15点～16点之间入库。本接口是 未复权行情，停牌期间不提供数据
+        """
         df = self.pro.daily(ts_code=ts_code, trade_date=trade_date, start_date=start_date, end_date=end_date)
         return df
 
-    # 周线行情 获取A股周线行情(未复权行情)
+    @retry(max_retry=3, time_interval=2)
     def get_weekly(self, ts_code: str = None, trade_date: str = None, start_date: str = None,
                    end_date: str = None) -> DataFrame:
+        """周线行情 获取A股周线行情(未复权行情)"""
         df = self.pro.weekly(ts_code=ts_code, trade_date=trade_date, start_date=start_date, end_date=end_date)
         return df
 
-    # 获取A股月线数据(未复权行情)
+    @retry(max_retry=3, time_interval=1)
     def get_monthly(self, ts_code: str = None, trade_date: str = None, start_date: str = None,
                     end_date: str = None) -> DataFrame:
+        """获取A股月线数据(未复权行情)"""
         df = self.pro.monthly(ts_code=ts_code, trade_date=trade_date, start_date=start_date, end_date=end_date)
         return df
 
-    # 通用行情接口 根据入参，可以获取 未复权、前、后复权行情(只针对股票,即asset=E)
-    # 默认 前复权：adj=qfq
-    # freq 数据频度 ：支持分钟(min)/日(D)/周(W)/月(M)K线，其中1min表示1分钟（类推1/5/15/30/60分钟） ，默认D
-    # 更新时间：股票和指数通常在15点～17点之间，数字货币实时更新
+    @retry(max_retry=3, time_interval=2)
     def get_pro_bar(self, ts_code: str, freq: str = 'D', adj: str = 'qfq', asset: str = 'E',
                     start_date: str = None, end_date: str = None, ma: list = [], factors: list = None,
                     adjfactor: str = None) -> DataFrame:
@@ -170,7 +184,7 @@ class TuShareDataCapturer(object):
                         factors=factors, adjfactor=adjfactor, start_date=start_date, end_date=end_date)
         return df
 
-    # 获取全部股票每日重要的基本面指标，可用于选股分析、报表展示等。
+    @retry(max_retry=3, time_interval=2)
     def get_daily_basic(self, ts_code: str = '', trade_date: str = None,
                         start_date: str = None, end_date: str = None) -> DataFrame:
         """
@@ -203,6 +217,7 @@ class TuShareDataCapturer(object):
         df = self.pro.daily_basic(ts_code=ts_code, trade_date=trade_date, start_date=start_date, end_date=end_date)
         return df
 
+    @retry(max_retry=3, time_interval=2)
     def get_bak_daily(self, ts_code: str = None, trade_date: str = None, start_date: str = None, end_date: str = None,
                       offset: str = None, limit: str = None, fields: str = None) -> DataFrame:
         '''
@@ -256,7 +271,7 @@ class TuShareDataCapturer(object):
                                 offset=offset, limit=limit, fields=fields)
         return df
 
-    # 一次性获取最近一个日交易日所有股票的交易数据
+    @retry(max_retry=3, time_interval=1)
     def get_today_all(self) -> DataFrame:
         """
             一次性获取最近一个日交易日所有股票的交易数据
@@ -269,14 +284,14 @@ class TuShareDataCapturer(object):
         df = ts.get_today_all()
         return df
 
-    # 获取k线数据 [本接口即将停止更新可使用 get_pro_bar]
+    @retry(max_retry=3, time_interval=2)
     def get_k_data(self, code=None, start='', end='',
                    ktype='D', autype='qfq',
                    index=False,
                    retry_count=3,
                    pause=0.001) -> DataFrame:
         """
-        获取k线数据
+        获取k线数据 [本接口即将停止更新可使用 get_pro_bar]
         ---------
         Parameters:
           code:string
@@ -313,7 +328,7 @@ class TuShareDataCapturer(object):
                            pause=pause)
         return df
 
-    # 获取当日分笔明细数据
+    @retry(max_retry=3, time_interval=2)
     def get_today_tickss(self, code: str = None, retry_count: int = 3, pause: float = 0.001) -> DataFrame:
         """
             获取当日分笔明细数据
@@ -335,11 +350,12 @@ class TuShareDataCapturer(object):
 
     '''----------------------以下：股票特色数据----------------------'''
 
-    # 描述：获取股票每日技术面因子数据，用于跟踪股票当前走势情况，数据由Tushare社区自产，覆盖全历史
+    @retry(max_retry=3, time_interval=2)
     def get_stk_factor(self, ts_code: str = None, trade_date: str = None,
                        start_date: str = None, end_date: str = None) -> DataFrame:
         """
         每日技术面因子数据
+        获取股票每日技术面因子数据，用于跟踪股票当前走势情况，数据由Tushare社区自产，覆盖全历史
         ts_code 	str	N	股票代码
         trade_date	str	N	交易日期 （yyyymmdd，下同）
         start_date	str	N	开始日期
@@ -386,6 +402,7 @@ class TuShareDataCapturer(object):
                                  start_date=start_date, end_date=end_date)
         return df
 
+    @retry(max_retry=3, time_interval=2)
     def get_sw_daily(self, ts_code: str = None, trade_date: str = None,
                      start_date: str = None, end_date: str = None) -> DataFrame:
         """申万行业数据"""
@@ -410,7 +427,7 @@ class TuShareDataCapturer(object):
     12	母公司调整前报表	母公司报表发生变更前保留的原数据
     '''
 
-    # 获取上市公司财务利润表数据
+    @retry(max_retry=3, time_interval=2)
     def get_income(self, ts_code: str = None, ann_date: str = None, f_ann_date: str = None,
                    start_date: str = None, end_date: str = None, period: str = None, report_type: str = None,
                    comp_type: str = None, end_type: str = None) -> DataFrame:
@@ -431,7 +448,7 @@ class TuShareDataCapturer(object):
                                  comp_type=comp_type, end_type=end_type)
         return df
 
-    # 获取上市公司资产负债表
+    @retry(max_retry=3, time_interval=2)
     def get_balancesheet(self, ts_code: str = None, ann_date: str = None, start_date: str = None,
                          end_date: str = None, period: str = None, report_type: str = None,
                          comp_type: str = None, end_type: str = None) -> DataFrame:
@@ -451,23 +468,27 @@ class TuShareDataCapturer(object):
                                        comp_type=comp_type, end_type=end_type)
         return df
 
-    # todo 描述：获取上市公司现金流量表
+    @retry(max_retry=3, time_interval=2)
     def get_cashflow(self):
+        """todo 描述：获取上市公司现金流量表"""
         pass
 
-    # todo 描述：获取业绩预告数据
+    @retry(max_retry=3, time_interval=2)
     def get_forecast(self):
+        """todo 描述：获取业绩预告数据"""
         pass
 
-    # todo 描述：获取上市公司业绩快报
+    @retry(max_retry=3, time_interval=2)
     def get_express(self):
+        """todo 描述：获取上市公司业绩快报"""
         pass
 
-    # todo 描述：分红送股数据
+    @retry(max_retry=3, time_interval=2)
     def get_dividend(self):
+        """todo 描述：分红送股数据"""
         pass
 
-    # 获取上市公司财务指标数据，为避免服务器压力，现阶段每次请求最多返回60条记录，可通过设置日期多次请求获取更多数据。
+    @retry(max_retry=3, time_interval=2)
     def get_fina_indicator(self, ts_code: str = None, ann_date: str = None, start_date: str = None,
                            end_date: str = None, period: str = None) -> DataFrame:
         """
@@ -482,7 +503,7 @@ class TuShareDataCapturer(object):
                                          end_date=end_date, period=period)
         return df
 
-    # 描述：获得上市公司主营业务构成，分地区和产品两种方式
+    @retry(max_retry=3, time_interval=2)
     def get_fina_mainbz(self, ts_code: str = None, period: str = None, start_date: str = None,
                         end_date: str = None, type: str = None) -> DataFrame:
         """
@@ -499,7 +520,7 @@ class TuShareDataCapturer(object):
 
     '''----------------------以下：指数相关数据----------------------'''
 
-    # 获取指数基础信息
+    @retry(max_retry=3, time_interval=2)
     def get_index_basic(self, ts_code=None, name=None,
                         market=None, publisher=None, category=None) -> DataFrame:
         """"
@@ -563,7 +584,7 @@ class TuShareDataCapturer(object):
                                   publisher=publisher, category=category)
         return df
 
-    # 大盘指数每日指标
+    @retry(max_retry=3, time_interval=2)
     def get_index_dailybasic(self, ts_code: str = None, trade_date: str = None,
                              start_date: str = None, end_date: str = None):
         """
@@ -591,7 +612,7 @@ class TuShareDataCapturer(object):
                                        start_date=start_date, end_date=end_date)
         return df
 
-    # 获取指数每日行情
+    @retry(max_retry=3, time_interval=2)
     def get_index_daily(self, ts_code, trade_date=None,
                         start_date=None, end_date=None):
         """
@@ -633,18 +654,3 @@ class TuShareDataCapturer(object):
     # 财富管理
     # 数据索引
     '''----------------------以上：沪深股票数据----------------------'''
-# 交易数据
-# trade_data=ts.get_today_all()
-# 时间默认为当前交易日的上一个交易日
-# test
-# print(TuShareDataCapturer().get_stock_list()["ts_code"].size)
-# print(TuShareDataCapturer().get_daily_basic(trade_date='20220906')["ts_code"].size)
-# print(TuShareDataCapturer().get_trade_cal())
-# print(TuShareDataCapturer().get_stock_company())
-# print(TuShareDataCapturer().get_stock_company(ts_code='300395.SZ'))
-# print(TuShareDataCapturer().get_stk_rewards(ts_code='300395.SZ'))
-# print(TuShareDataCapturer().get_new_share(start_date='20220202', end_date='20220808'))
-# print(TuShareDataCapturer().get_daily(ts_code='300395.SZ', start_date='20220802', end_date='20220808'))
-# print(TuShareDataCapturer().get_pro_bar(ts_code='300395.SZ', freq='D', start_date='20220802', end_date='20220808'))
-# print(TuShareDataCapturer().get_income(ts_code='300395.SZ', period='20181231'))
-# print(TuShareDataCapturer().get_balancesheet(ts_code='300395.SZ', period='20181231'))
