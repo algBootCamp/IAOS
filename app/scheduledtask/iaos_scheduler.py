@@ -38,7 +38,8 @@ class IAOSTask(Singleton):
 
     def __init__(self, app):
         # 本进程标志
-        self.uid = get_mac_address() + str(os.getpid())
+        self.pid = os.getpid()
+        self.uid = get_mac_address() + str(self.pid)
         # 分布式锁
         self.rl = RedisLock(lock_name="IAOSTask", uid=self.uid, expire=30)
 
@@ -64,9 +65,13 @@ class IAOSTask(Singleton):
         远程基础数据定时更新
         """
         try:
-            log.info("start IAOSTask __update_remote_base_data.")
-            RemoteBasicDataCache.refresh()
-            log.info("execute IAOSTask __update_remote_base_data success.")
+            log.info("{} start IAOSTask __update_remote_base_data.".format(self.pid))
+            res = RemoteBasicDataCache.refresh()
+            if res:
+                log.info("The process {} execute IAOSTask __update_remote_base_data success.".format(self.pid))
+            else:
+                log.info("The process {} is not qualified for execution of IAOSTask __update_remote_base_data.".format(
+                    self.pid))
         except Exception as e:
             log_err.error("execute IAOSTask __update_remote_base_data failed. {}".format(e))
 
@@ -125,12 +130,12 @@ class IAOSTask(Singleton):
 
     def start_task(self):
         # 从2023年3月1日开始后的的每天的8点0分执行
-        self.scheduler.add_job(id='1', func=self.__update_remote_base_data, trigger='cron', day_of_week='0-6', hour=10,
-                               minute=26,
+        self.scheduler.add_job(id='1', func=self.__update_remote_base_data, trigger='cron',
+                               day_of_week='0-6', hour=0, minute=49,
                                start_date='2023-3-1', end_date='2099-3-1')
         # 从2023年3月1日开始后的的每天的8点5分执行
-        self.scheduler.add_job(id='2', func=self.__update_local_base_data, trigger='cron', day_of_week='0-6', hour=10,
-                               minute=29,
+        self.scheduler.add_job(id='2', func=self.__update_local_base_data, trigger='cron',
+                               day_of_week='0-6', hour=0, minute=51,
                                start_date='2023-3-1', end_date='2099-3-1')
 
         # 从2023年3月1日开始后的的每周一到周五的23点23分执行

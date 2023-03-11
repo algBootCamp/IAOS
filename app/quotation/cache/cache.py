@@ -3,6 +3,7 @@ __author__ = 'carl'
 
 import logging
 import os
+import time
 
 from db.myredis.redis_cli import RedisClient
 from db.myredis.redis_lock import RedisLock
@@ -26,6 +27,8 @@ log_err = logging.getLogger("log_err")
 # noinspection SpellCheckingInspection,PyMethodMayBeStatic
 class RemoteBasicDataCache(object):
     instance = None
+    # 0:未更新 1：已更新
+    updateflag = 0
     rediscli = RedisClient().get_redis_cli()
     # 本进程标志
     uid = get_mac_address() + str(os.getpid())
@@ -39,15 +42,22 @@ class RemoteBasicDataCache(object):
 
     @classmethod
     def refresh(cls):
+        res = False
+        cls.updateflag = 0
+        cls.rediscli.set("RemoteBasicDataCache.updateflag", cls.updateflag)
         try:
             if cls.rl.lock():
                 cls.store_base_stock_infos()
                 cls.store_smb_industry_map()
-                log.info("全部股票每日重要的基础数据更新完毕.")
+                res = True
+                cls.updateflag = 1
+                cls.rediscli.set("RemoteBasicDataCache.updateflag", cls.updateflag)
+                log.info("远程全部股票每日重要的基础数据更新完毕.")
         except Exception as e:
-            log_err.error("全部股票每日重要的基础数据更新失败！%s" % e)
+            log_err.error("远程全部股票每日重要的基础数据更新失败！%s" % e)
         finally:
             cls.rl.unlock()
+        return res
 
     @classmethod
     def store_base_stock_infos(cls):
@@ -98,11 +108,13 @@ class LocalBasicDataCache(object):
     @classmethod
     def refresh(cls):
         try:
+            while int(cls.rediscli.get("RemoteBasicDataCache.updateflag")) == 0:
+                time.sleep(1)
             cls.load_base_stock_infos()
             cls.load_smb_industry_map()
-            log.info("加载全部股票每日重要的基础数据完毕.")
+            log.info("本地加载全部股票每日重要的基础数据完毕.")
         except Exception as e:
-            log_err.error("加载全部股票每日重要的基础数据失败！%s" % e)
+            log_err.error("本地加载全部股票每日重要的基础数据失败！%s" % e)
 
     @classmethod
     def load_base_stock_infos(cls):

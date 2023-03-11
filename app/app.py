@@ -11,8 +11,8 @@ from flask import Flask, jsonify
 
 from conf.globalcfg import GlobalCfg
 from entity.jsonresp import JsonResponse
-
 # 路径加载 [后续用作lib加载，便于部署]
+from scheduledtask.iaos_scheduler import IAOSTask
 
 reload(sys)
 sys.path.append('./')
@@ -57,24 +57,31 @@ class IAOSFlask(Flask):
 
     def __init__(self, *args, **kwargs):
         super(IAOSFlask, self).__init__(*args, **kwargs)
+        self._iaos_cfg()
         self._iaos_init()
+
+    def _iaos_cfg(self):
+        """防止中文转换成ASCII编码"""
+        self.config['JSON_AS_ASCII'] = False
 
     def _iaos_init(self):
         def init():
             # TODO
             """常用基础数据缓存"""
-            from scheduledtask.iaos_scheduler import IAOSTask
             from quotation.cache.cache import RemoteBasicDataCache, LocalBasicDataCache
             RemoteBasicDataCache.refresh()
+            # 保证RemoteBasicDataCache.refresh执行结束，再进行LocalBasicDataCache.refresh
             LocalBasicDataCache.refresh()
-            """定时任务开始"""
-            IAOSTask(app=app).start_task()
+
+        t1 = threading.Thread(target=init)
+        t1.start()
 
         # 蓝图  简单理解蓝图：就是将系统的代码模块化（组件化）
         from web.controller.blueprint import iaos_blue
         self.register_blueprint(iaos_blue)
-        t1 = threading.Thread(target=init)
-        t1.start()
+        """定时任务开始"""
+        IAOSTask(app=self).start_task()
+        log.info("IAOS Server will Start!")
 
     def make_response(self, rv):
         """
@@ -97,7 +104,7 @@ class IAOSFlask(Flask):
 app = IAOSFlask(__name__, instance_relative_config=True, instance_path=os.getcwd())
 
 
-# start the app
+# start the app 使用 python 启动时有用
 # noinspection SpellCheckingInspection
 # @app.cli.command("start-iaos")
 # @click.argument("env")

@@ -9,6 +9,7 @@ from pandas import DataFrame
 
 from db.myredis.redis_cli import RedisClient
 from quotation.captures.tsdata_capturer import TuShareDataCapturer
+from util.decorator_util import retry
 from util.time_util import get_befortoday_Ymd, get_after_today_Ymd
 
 '''
@@ -104,6 +105,7 @@ class BaseDataClean(object):
         log.info("BaseDataClean load done.")
 
     @classmethod
+    @retry(max_retry=3,time_interval=3)
     def init_base_stock_infos(cls):
         """
         init base_stock_infos
@@ -189,7 +191,7 @@ class BaseDataClean(object):
             return base_stock_infos
         except Exception as e:
             log_err.error("base_stock_infos init Failed!%s" % e)
-            return None
+            raise e
 
     @classmethod
     def init_stocks_pool(cls):

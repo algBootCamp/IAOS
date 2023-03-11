@@ -1,42 +1,34 @@
-# !/bin/sh
+#!/bin/sh
 
 cmd=$1
 
 #serverNum=$(($((`cat /proc/cpuinfo | grep processor | wc -l`))-1))
 #sed -i "/workers/s/[0-9]\+/$serverNum/" conf/server_cfg.py
-# gunicorn to see：https://bbs.huaweicloud.com/blogs/309794
-# https://cloud.tencent.com/developer/article/1823695
-function start()
-{
-    echo "starting workers"
-    gunicorn -k gevent --daemon --max-requests=300 --conf=conf/server_cfg.py app:app
+# gunicorn usage to see：https://bbs.huaweicloud.com/blogs/309794
+function start() {
+  echo "starting workers"
+  gunicorn -k gevent --daemon --max-requests=100 --conf=conf/server_cfg.py app:app
 }
 
-function stopjob()
-{
-    ps aux | grep -v grep | grep $1 | xargs echo
-    ps aux | grep -v grep | grep $1 | awk '{print $2}' | xargs echo
-    ps aux | grep $1 | grep -v grep | awk '{print $2}' | xargs kill -9
+function stopjob() {
+  ps aux | grep -v grep | grep $1 | xargs echo
+  ps aux | grep -v grep | grep $1 | awk '{print $2}' | xargs echo
+  ps aux | grep $1 | grep -v grep | awk '{print $2}' | xargs kill -9
 }
 
 echo "CMD is the only arg: start | stop | restart"
 
-if [ "$cmd"x = "start"x ]
-then
-    sleep 1
-    start
-elif [ "$cmd"x = "stop"x ]
-then
-    sleep 1
-    stopjob "app:app"
-elif [ "$cmd"x = "restart"x ]
-then
-    sleep 1
-    stopjob "app:app"
-    sleep 2
-    start
+if [ "$cmd"x = "start"x ]; then
+  sleep 1
+  start
+elif [ "$cmd"x = "stop"x ]; then
+  sleep 1
+  stopjob "app:app"
+elif [ "$cmd"x = "restart"x ]; then
+  sleep 1
+  stopjob "app:app"
+  sleep 2
+  start
 else
-    echo "ERROR: unknow cmd!!!"
+  echo "ERROR: unknow cmd!!!"
 fi
-
-# end sh
