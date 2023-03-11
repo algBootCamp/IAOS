@@ -4,7 +4,8 @@ cmd=$1
 
 #serverNum=$(($((`cat /proc/cpuinfo | grep processor | wc -l`))-1))
 #sed -i "/workers/s/[0-9]\+/$serverNum/" conf/server_cfg.py
-
+# gunicorn to see：https://bbs.huaweicloud.com/blogs/309794
+# https://cloud.tencent.com/developer/article/1823695
 function start()
 {
     echo "starting workers"

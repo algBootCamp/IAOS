@@ -13,7 +13,7 @@ if [ "$startdir" == "sbin" ];then
     cd cd ../app
     sh ../sbin/control restart
     exit 0
-elif [ "$startdir" = "oa"  ]; then
+elif [ "$startdir" = "app"  ]; then
     echo "Right Target Folder, Restart Job Accepted"
 else
     echo "Please Go To Project Folder 'iaos-server/app' And Retry, Exit!"
