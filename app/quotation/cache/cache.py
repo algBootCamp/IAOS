@@ -2,10 +2,13 @@
 __author__ = 'carl'
 
 import logging
+import os
 
 from db.myredis.redis_cli import RedisClient
+from db.myredis.redis_lock import RedisLock
 from quotation.cleaning.data_clean import BaseDataClean
 from util.obj_util import dumps_data, loads_data
+from util.sys_util import get_mac_address
 
 '''
 常用基础数据缓存，每日自动拉取一次，可主动刷新
@@ -24,6 +27,10 @@ log_err = logging.getLogger("log_err")
 class RemoteBasicDataCache(object):
     instance = None
     rediscli = RedisClient().get_redis_cli()
+    # 本进程标志
+    uid = get_mac_address() + str(os.getpid())
+    # 分布式锁
+    rl = RedisLock(lock_name="IAOSTask", uid=uid, expire=30)
 
     def __new__(cls, *args, **kwargs):
         if cls.instance is None:
@@ -33,11 +40,14 @@ class RemoteBasicDataCache(object):
     @classmethod
     def refresh(cls):
         try:
-            cls.store_base_stock_infos()
-            cls.store_smb_industry_map()
-            log.info("全部股票每日重要的基础数据更新完毕.")
+            if cls.rl.lock():
+                cls.store_base_stock_infos()
+                cls.store_smb_industry_map()
+                log.info("全部股票每日重要的基础数据更新完毕.")
         except Exception as e:
             log_err.error("全部股票每日重要的基础数据更新失败！%s" % e)
+        finally:
+            cls.rl.unlock()
 
     @classmethod
     def store_base_stock_infos(cls):

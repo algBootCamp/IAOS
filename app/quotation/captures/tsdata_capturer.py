@@ -36,7 +36,7 @@ class TuShareDataCapturer(object):
     '''----------------------以下：沪深股票数据----------------------'''
     '''----------------------以下：基础数据----------------------'''
 
-    @retry(max_retry=3, time_interval=2)
+    @retry(max_retry=5, time_interval=3)
     def get_stock_list(self) -> DataFrame:
         """
         查询当前所有正常上市交易的股票列表
@@ -184,7 +184,7 @@ class TuShareDataCapturer(object):
                         factors=factors, adjfactor=adjfactor, start_date=start_date, end_date=end_date)
         return df
 
-    @retry(max_retry=3, time_interval=2)
+    @retry(max_retry=5, time_interval=3)
     def get_daily_basic(self, ts_code: str = '', trade_date: str = None,
                         start_date: str = None, end_date: str = None) -> DataFrame:
         """
@@ -271,7 +271,7 @@ class TuShareDataCapturer(object):
                                 offset=offset, limit=limit, fields=fields)
         return df
 
-    @retry(max_retry=3, time_interval=1)
+    @retry(max_retry=5, time_interval=3)
     def get_today_all(self) -> DataFrame:
         """
             一次性获取最近一个日交易日所有股票的交易数据
@@ -488,7 +488,7 @@ class TuShareDataCapturer(object):
         """todo 描述：分红送股数据"""
         pass
 
-    @retry(max_retry=3, time_interval=2)
+    @retry(max_retry=5, time_interval=2)
     def get_fina_indicator(self, ts_code: str = None, ann_date: str = None, start_date: str = None,
                            end_date: str = None, period: str = None) -> DataFrame:
         """

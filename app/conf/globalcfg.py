@@ -77,18 +77,7 @@ class GlobalCfg(object):
             self.__log_files = ConfigHelper.get_cfg_info(self.cfg_path, GlobalCfg.log_files_flag)
         return self.__log_files
 
-        # noinspection PyRedundantParentheses,SpellCheckingInspection
-
+    # noinspection PyRedundantParentheses,SpellCheckingInspection
     def initcfg(self):
         self.cfg_path = __file__
         self.cfg_path = self.cfg_path.split("globalcfg.py", 1)[0] + GlobalCfg.cfg_path
-
-# test
-# x = GlobalCfg()
-# y = GlobalCfg()
-# print(x.get_server_info())
-# print(x.get_server_info())
-# print(x.get_server_info())
-# print(y.get_ts_cfg())
-# print(x)
-# print(y)

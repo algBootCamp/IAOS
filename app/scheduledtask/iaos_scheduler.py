@@ -64,14 +64,11 @@ class IAOSTask(Singleton):
         远程基础数据定时更新
         """
         try:
-            if self.rl.lock():
-                log.info("start IAOSTask __update_remote_base_data.")
-                RemoteBasicDataCache.refresh()
-                log.info("execute IAOSTask __update_remote_base_data success.")
+            log.info("start IAOSTask __update_remote_base_data.")
+            RemoteBasicDataCache.refresh()
+            log.info("execute IAOSTask __update_remote_base_data success.")
         except Exception as e:
             log_err.error("execute IAOSTask __update_remote_base_data failed. {}".format(e))
-        finally:
-            self.rl.unlock()
 
     def __update_local_base_data(self):
         """

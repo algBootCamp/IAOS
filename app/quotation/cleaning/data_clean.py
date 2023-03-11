@@ -47,7 +47,7 @@ log_err = logging.getLogger("log_err")
 # ----  log ------ #
 
 
-# noinspection PyMethodMayBeStatic,SpellCheckingInspection,PyIncorrectDocstring
+# noinspection PyMethodMayBeStatic,SpellCheckingInspection,PyIncorrectDocstring,DuplicatedCode
 class BaseDataClean(object):
     # 上一个交易日
     pretrade_date: str = None
@@ -125,7 +125,7 @@ class BaseDataClean(object):
                     'ebt_yoy', 'tr_yoy', 'or_yoy', 'equity_yoy', 'update_flag'
                     ]
         rename_col = ['TS股票代码', '股票代码', '股票名称', '地区', '行业', '市场', '上市日期', '交易所',
-                      '当日收盘价','换手率（%）','换手率（自由流通股）','量比',
+                      '当日收盘价', '换手率（%）', '换手率（自由流通股）', '量比',
                       '市盈率', '市盈率TTM', '市净率', '市销率', '市销率TTM', '总股本', '流通股本', '总市值', '流通市值',
                       '股息率', '股息率TTM', '涨跌幅', '现价', '成交量', '成交额',
                       '公告日期', '报告期', '基本每股收益', '流动比率', '速动比率', '每股净资产', '销售净利率',
@@ -145,7 +145,8 @@ class BaseDataClean(object):
             ex_indu_data.insert(loc=len(ex_indu_data.columns), column='exchange', value=exchange_data)
             # 全部股票每日重要的基本面指标
             # 'close', 'turnover_rate','turnover_rate_f', 'volume_ratio',
-            b_col = ['ts_code', 'close', 'turnover_rate','turnover_rate_f', 'volume_ratio','pe', 'pe_ttm', 'pb', 'ps', 'ps_ttm', 'total_share', 'float_share', 'total_mv',
+            b_col = ['ts_code', 'close', 'turnover_rate', 'turnover_rate_f', 'volume_ratio', 'pe', 'pe_ttm', 'pb', 'ps',
+                     'ps_ttm', 'total_share', 'float_share', 'total_mv',
                      'circ_mv', 'dv_ratio', 'dv_ttm']
             basics_data: DataFrame = BaseDataClean.tsdatacapture.get_daily_basic(
                 trade_date=BaseDataClean.get_pretrade_date())[b_col]

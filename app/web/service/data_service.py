@@ -19,12 +19,15 @@ def get_industry():
     """
     获取行业信息
     """
-    rediscli = __getrediscli()
-    res = rediscli.get("industry_set")
-    if res is None:
-        LocalBasicDataCache.load_smb_industry_map()
+    if LocalBasicDataCache.industry_set is not None:
+        return LocalBasicDataCache.industry_set
+    else:
+        rediscli = __getrediscli()
         res = rediscli.get("industry_set")
-    return loads_data(res)
+        if res is None:
+            LocalBasicDataCache.load_smb_industry_map()
+            res = rediscli.get("industry_set")
+        return loads_data(res)
 
 
 def __getrediscli():
