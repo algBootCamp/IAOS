@@ -49,6 +49,11 @@ class ConditonStockPick01(ConditonStockPick):
                           '年化总资产报酬率', '资产负债率', '营业利润同比增长率', '利润总额同比增长率', '营业总收入同比增长率', '营业收入同比增长率', '净资产同比增长率', '更新标识'
                           ]
         # enable_condtions_dict = dict(zip(condtions_col, condtions_name))
+        if self.base_stock_infos is None:
+            self.base_stock_infos = LocalBasicDataCache.load_base_stock_infos()
+        if condtions is None or len(condtions.keys()) == 0:
+            return self.base_stock_infos
+
         condtions_dict = dict()
         # 条件校验
         for condtion_key, condtion in condtions.items():
