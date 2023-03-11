@@ -129,14 +129,16 @@ class IAOSTask(Singleton):
 
     def start_task(self):
         # 从2023年3月1日开始后的的每天的8点0分执行
-        self.scheduler.add_job(self.__update_remote_base_data, trigger='cron', day_of_week='0-6', hour=10, minute=26,
-                               start_date='2023-3-1', end_date='2099-3-1', id='1')
+        self.scheduler.add_job(id='1', func=self.__update_remote_base_data, trigger='cron', day_of_week='0-6', hour=10,
+                               minute=26,
+                               start_date='2023-3-1', end_date='2099-3-1')
         # 从2023年3月1日开始后的的每天的8点5分执行
-        self.scheduler.add_job(self.__update_local_base_data, trigger='cron', day_of_week='0-6', hour=10, minute=29,
-                               start_date='2023-3-1', end_date='2099-3-1', id='2')
+        self.scheduler.add_job(id='2', func=self.__update_local_base_data, trigger='cron', day_of_week='0-6', hour=10,
+                               minute=29,
+                               start_date='2023-3-1', end_date='2099-3-1')
 
         # 从2023年3月1日开始后的的每周一到周五的23点23分执行
-        # self.scheduler.add_job(self.__pick_stock, 'cron', day_of_week='mon-fri', hour=23, minute=23,
+        # self.scheduler.add_job(id='3', func=self.__pick_stock, 'cron', day_of_week='mon-fri', hour=23, minute=23,
         #                        start_date='2023-3-1')
         # 设置任务监听
         self.scheduler.add_listener(self.__job_exception_listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
