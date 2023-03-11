@@ -53,9 +53,10 @@ class IAOSTask(Singleton):
             'misfire_grace_time': None
         }
         # 任务调度
-        self.scheduler = APScheduler(scheduler=BackgroundScheduler())
-        self.scheduler.configure(jobstore='default', executors=self.executors,
-                                 job_defaults=self.job_defaults, timezone='Asia/Shanghai')
+        self.core_scheduler = BackgroundScheduler()
+        self.core_scheduler.configure(jobstore='default', executors=self.executors,
+                                      job_defaults=self.job_defaults, timezone='Asia/Shanghai')
+        self.scheduler = APScheduler(scheduler=self.core_scheduler)
         self.scheduler.init_app(app)
 
     def __update_remote_base_data(self):
