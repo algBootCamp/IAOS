@@ -4,10 +4,12 @@ __author__ = 'carl'
 import logging.config
 import os
 import sys
+import threading
 from importlib import reload
 
-from conf.globalcfg import GlobalCfg
 from flask import Flask, jsonify
+
+from conf.globalcfg import GlobalCfg
 from entity.jsonresp import JsonResponse
 
 # 路径加载 [后续用作lib加载，便于部署]
@@ -50,7 +52,29 @@ log = logging.getLogger("app")
 log_err = logging.getLogger("log_err")
 
 
+# noinspection PyMethodMayBeStatic
 class IAOSFlask(Flask):
+
+    def __init__(self, *args, **kwargs):
+        super(IAOSFlask, self).__init__(*args, **kwargs)
+        self._iaos_init()
+
+    def _iaos_init(self):
+        def init():
+            # TODO
+            """常用基础数据缓存"""
+            from scheduledtask.iaos_scheduler import IAOSTask
+            from quotation.cache.cache import RemoteBasicDataCache, LocalBasicDataCache
+            RemoteBasicDataCache.refresh()
+            LocalBasicDataCache.refresh()
+            """定时任务开始"""
+            IAOSTask(app=app).start_task()
+
+        # 蓝图  简单理解蓝图：就是将系统的代码模块化（组件化）
+        from web.controller.blueprint import blue
+        self.register_blueprint(blue)
+        t1 = threading.Thread(target=init)
+        t1.start()
 
     def make_response(self, rv):
         """
@@ -73,30 +97,14 @@ class IAOSFlask(Flask):
 app = IAOSFlask(__name__, instance_relative_config=True, instance_path=os.getcwd())
 
 
-def init():
-    # TODO
-    """常用基础数据缓存"""
-    from scheduledtask.iaos_scheduler import IAOSTask
-    from quotation.cache.cache import RemoteBasicDataCache, LocalBasicDataCache
-    RemoteBasicDataCache.refresh()
-    LocalBasicDataCache.refresh()
-    """定时任务开始"""
-    IAOSTask().start_task()
-
-
 # start the app
 # noinspection SpellCheckingInspection
 # @app.cli.command("start-iaos")
 # @click.argument("env")
 def start():
     try:
-        # init
-        init()
         # start web web
         server_info = global_cfg.get_server_info()
-        # 蓝图  简单理解蓝图：就是将系统的代码模块化（组件化）
-        from web.controller.blueprint import blue
-        app.register_blueprint(blue)
         app.config['DEBUG'] = False
         # app.config['SECRET_KEY'] = 'ABCDEFG'
         # 防止中文转换成ASCII编码

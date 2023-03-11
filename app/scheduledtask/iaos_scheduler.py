@@ -35,7 +35,7 @@ https://blog.csdn.net/sxdgy_/article/details/126377513
 # noinspection PyMethodMayBeStatic
 class IAOSTask(Singleton):
 
-    def __init__(self):
+    def __init__(self, app):
         # 本进程标志
         self.uid = get_mac_address() + str(os.getpid())
         # 分布式锁
@@ -47,13 +47,15 @@ class IAOSTask(Singleton):
             'processorpool': ProcessPoolExecutor(max_workers=2)
         }
         self.job_defaults = {
-            'coalesce': False,  # 关闭新job的合并，当job延误或者异常原因未执行时
-            'max_instances': 4  # 并发运行新job默认最大实例多少
+            'coalesce': True,
+            'max_instances': 4,  # 并发运行新job默认最大实例多少
+            'misfire_grace_time': None
         }
         # 任务调度
         self.scheduler = BackgroundScheduler()
         self.scheduler.configure(jobstore='default', executors=self.executors,
                                  job_defaults=self.job_defaults, timezone='Asia/Shanghai')
+        # self.scheduler.init_app(app)
 
     def __update_remote_base_data(self):
         """
@@ -125,10 +127,10 @@ class IAOSTask(Singleton):
 
     def start_task(self):
         # 从2023年3月1日开始后的的每天的8点0分执行
-        self.scheduler.add_job(self.__update_remote_base_data, trigger='cron', day_of_week='0-6', hour=8, minute=0,
+        self.scheduler.add_job(self.__update_remote_base_data, trigger='cron', day_of_week='0-6', hour=9, minute=14,
                                start_date='2023-3-1', end_date='2099-3-1', id='1')
         # 从2023年3月1日开始后的的每天的8点5分执行
-        self.scheduler.add_job(self.__update_local_base_data, trigger='cron', day_of_week='0-6', hour=8, minute=5,
+        self.scheduler.add_job(self.__update_local_base_data, trigger='cron', day_of_week='0-6', hour=9, minute=18,
                                start_date='2023-3-1', end_date='2099-3-1', id='2')
 
         # 从2023年3月1日开始后的的每周一到周五的23点23分执行
