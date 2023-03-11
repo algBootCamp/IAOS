@@ -3,3 +3,4 @@
 /logs/
 /app/test/.pytest_cache/
 /app/conf/cfg.ini
+**/__pycache__
