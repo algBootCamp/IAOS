@@ -12,7 +12,7 @@ from web.service.data_service import get_industry
 # contoller
 from web.service.quantization_service import get_stks_by_cons
 
-blue = Blueprint('blue', __name__)
+iaos_blue = Blueprint('iaos_blue', __name__)
 
 
 # --------- blueprint util --------- #
@@ -42,14 +42,14 @@ log_err = logging.getLogger("log_err")
 
 
 # default
-@blue.route('/', methods=['POST', 'GET'])
+@iaos_blue.route('/', methods=['POST', 'GET'])
 @blueprintlog(log)
 def main():
     # log.info("访问 %s 接口." % sys._getframe().f_code.co_name)
     return "I'm IAOS Server ~"
 
 
-@blue.route('/display_industry.do', methods=['POST', 'GET'])
+@iaos_blue.route('/display_industry.do', methods=['POST', 'GET'])
 @blueprintlog(log)
 def display_industry():
     """
@@ -58,7 +58,7 @@ def display_industry():
     return list(get_industry())
 
 
-@blue.route('/sel_stks_by_cons.do', methods=['POST'])
+@iaos_blue.route('/sel_stks_by_cons.do', methods=['POST'])
 @blueprintlog(log)
 def sel_stks_by_cons():
     """
@@ -74,7 +74,7 @@ def sel_stks_by_cons():
         return get_stks_by_cons(condtions_dict)
 
 
-@blue.errorhandler(Exception)
+@iaos_blue.errorhandler(Exception)
 def error_handler(e):
     """
     全局异常捕获，也相当于一个视图函数

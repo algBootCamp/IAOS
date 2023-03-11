@@ -71,8 +71,8 @@ class IAOSFlask(Flask):
             IAOSTask(app=app).start_task()
 
         # 蓝图  简单理解蓝图：就是将系统的代码模块化（组件化）
-        from web.controller.blueprint import blue
-        self.register_blueprint(blue)
+        from web.controller.blueprint import iaos_blue
+        self.register_blueprint(iaos_blue)
         t1 = threading.Thread(target=init)
         t1.start()
 

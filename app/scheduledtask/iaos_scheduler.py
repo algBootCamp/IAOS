@@ -75,7 +75,6 @@ class IAOSTask(Singleton):
         本地基础数据定时加载更新
         """
         try:
-
             log.info("start IAOSTask __update_local_base_data.")
             LocalBasicDataCache.refresh()
             log.info("execute IAOSTask __update_local_base_data success.")

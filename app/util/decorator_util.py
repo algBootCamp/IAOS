@@ -29,7 +29,7 @@ def retry(max_retry: int = 3, time_interval: int = 1):
         @wraps(func)
         async def async_wrapper(*args, **kwargs):
             # 异步循环重试
-            for retry_count in range(max_retry):
+            for _ in range(max_retry):
                 try:
                     return await func(*args, **kwargs)
                 except:
