@@ -62,3 +62,12 @@
 - #### static：web前端静态文件
 - #### templates：web前端模版文件
 
+--- 
+### 参考资料
+- [量化策略系列文章](https://blog.csdn.net/weixin_35757704/category_12162608.html)
+- [akshare](https://gitcode.net/mirrors/akfamily/akshare/-/tree/master/docs)
+- [akshare doc](https://www.akshare.xyz/demo.html)
+- [研报复现01](https://blog.csdn.net/weixin_43915798/category_10971751.html)
+- [研报复现02](https://blog.csdn.net/weixin_42219751/category_9059115.html)
+- [tushare](https://www.tushare.pro/)
+- [waditu研报](https://waditu.com/#/search/report)
