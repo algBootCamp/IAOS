@@ -5,12 +5,12 @@ targetdir=$(echo $scriptname | awk -F 'sbin' '{print $(NF-1)}')
 app="app"
 targetdir=$targetdir$app
 cd $targetdir
-echo $targetdir
+#echo $targetdir
 
 startdir=$(pwd | awk -F / '{print $NF}')
 if [ "$startdir" == "sbin" ]; then
   echo "Automatic Go To Project Folder To Finish The Job"
-  cd cd ../app
+  cd ../app
   sh ../sbin/control restart
   exit 0
 elif [ "$startdir" = "app" ]; then

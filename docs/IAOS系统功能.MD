@@ -71,3 +71,5 @@
 - [研报复现02](https://blog.csdn.net/weixin_42219751/category_9059115.html)
 - [tushare](https://www.tushare.pro/)
 - [waditu研报](https://waditu.com/#/search/report)
+- [waditu doc](https://github.com/waditu)
+- [CZSC](https://s0cqcxuy3p.feishu.cn/wiki/wikcnNgfYsvULhW8SC5rd1t97Pb?create_from=create_doc_to_wiki)

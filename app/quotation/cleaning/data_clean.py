@@ -9,6 +9,7 @@ from pandas import DataFrame
 
 from db.myredis.redis_cli import RedisClient
 from quotation.captures.tsdata_capturer import TuShareDataCapturer
+from util.cal_util import get_data_percentile
 from util.decorator_util import retry
 from util.time_util import get_befortoday_Ymd, get_after_today_Ymd
 
@@ -122,7 +123,7 @@ class BaseDataClean(object):
                     'pe', 'pe_ttm', 'pb', 'ps', 'ps_ttm', 'total_share', 'float_share', 'total_mv', 'circ_mv',
                     'dv_ratio', 'dv_ttm', 'changepercent', 'trade', 'volume', 'amount',
                     'ann_date', 'end_date', 'eps', 'current_ratio', 'quick_ratio', 'bps',
-                    'netprofit_margin', 'grossprofit_margin', 'profit_to_gr', 'op_of_gr', 'roe',
+                    'netprofit_margin', 'grossprofit_margin', 'profit_to_gr', 'op_of_gr', 'roe','basic_eps_yoy',
                     'roa', 'npta', 'roic', 'roe_yearly', 'roa2_yearly', 'debt_to_assets', 'op_yoy',
                     'ebt_yoy', 'tr_yoy', 'or_yoy', 'equity_yoy', 'update_flag'
                     ]
@@ -131,7 +132,7 @@ class BaseDataClean(object):
                       '市盈率', '市盈率TTM', '市净率', '市销率', '市销率TTM', '总股本', '流通股本', '总市值', '流通市值',
                       '股息率', '股息率TTM', '涨跌幅', '现价', '成交量', '成交额',
                       '公告日期', '报告期', '基本每股收益', '流动比率', '速动比率', '每股净资产', '销售净利率',
-                      '销售毛利率', '净利润率', '营业利润率', '净资产收益率', '总资产报酬率', '总资产净利润', '投入资本回报率', '年化净资产收益率',
+                      '销售毛利率', '净利润率', '营业利润率', '净资产收益率', '总资产报酬率', '总资产净利润', '投入资本回报率', '年化净资产收益率','基本每股收益同比增长率(%)',
                       '年化总资产报酬率', '资产负债率', '营业利润同比增长率', '利润总额同比增长率', '营业总收入同比增长率', '营业收入同比增长率', '净资产同比增长率', '更新标识'
                       ]
         # rename_dict = dict(zip(need_col, rename_col))
@@ -170,7 +171,7 @@ class BaseDataClean(object):
             # 年化净资产收益率 年化总资产报酬率 资产负债率 营业利润同比增长率(%) 利润总额同比增长率(%)
             # 营业总收入同比增长率(%) 营业收入同比增长率(%) 净资产同比增长率 更新标识
             f_col = ['ts_code', 'ann_date', 'end_date', 'eps', 'current_ratio', 'quick_ratio', 'bps',
-                     'netprofit_margin', 'grossprofit_margin', 'profit_to_gr', 'op_of_gr', 'roe',
+                     'netprofit_margin', 'grossprofit_margin', 'profit_to_gr', 'op_of_gr', 'roe','basic_eps_yoy',
                      'roa', 'npta', 'roic', 'roe_yearly', 'roa2_yearly', 'debt_to_assets', 'op_yoy',
                      'ebt_yoy', 'tr_yoy', 'or_yoy', 'equity_yoy', 'update_flag']
             fina_indicator: DataFrame = BaseDataClean.tsdatacapture.get_fina_indicator()
@@ -188,6 +189,7 @@ class BaseDataClean(object):
                 base_stock_infos['float_share'] = base_stock_infos['float_share'] * BaseDataClean.billion
                 base_stock_infos['total_mv'] = base_stock_infos['total_mv'] * BaseDataClean.billion
                 base_stock_infos['circ_mv'] = base_stock_infos['circ_mv'] * BaseDataClean.billion
+            log.info("base_stock_infos init success.")
             return base_stock_infos
         except Exception as e:
             log_err.error("base_stock_infos init Failed!%s" % e)
@@ -234,7 +236,7 @@ class BaseDataClean(object):
         # 此次划分标准：分析 流通股本的中位数、75%分位数、90%分位数
         # 中位数以下：小盘股
         # 90%分位数以上：大盘股
-        data_max, data_min, valuation_low, valuation_mid, valuation_high = cls.get_data_percentile(
+        data_max, data_min, valuation_low, valuation_mid, valuation_high = get_data_percentile(
             np.array(dfall.iloc[:].loc[:, 'float_share']).tolist(), 50, 75, 90)
         for idx, stkdata in dfall.iterrows():
             float_mv = stkdata["float_share"]
@@ -269,24 +271,6 @@ class BaseDataClean(object):
             len(BaseDataClean.small_cap_stocks)))
         log.info("BaseDataClean.smb_industry_map init sucess.")
         return BaseDataClean.smb_industry_map
-
-    @classmethod
-    def get_data_percentile(cls, data: list, v_low=50.0, v_mid=83.83, v_high=94.22) -> tuple:
-        """
-        获取 data 最大值 最小值  高、中、低分位数
-        :param data:
-        :return:
-        """
-        if data is None or len(data) < 1:
-            log_err.error("BaseDataClean.get_data_percentile 参数data异常!")
-            raise Exception("BaseDataClean.get_data_percentile 参数data异常:", data)
-
-        data_max = max(data)
-        data_min = min(data)
-        valuation_high = np.percentile(data, v_high)
-        valuation_mid = np.percentile(data, v_mid)
-        valuation_low = np.percentile(data, v_low)
-        return data_max, data_min, valuation_low, valuation_mid, valuation_high
 
     @classmethod
     def get_pretrade_date(cls) -> str:

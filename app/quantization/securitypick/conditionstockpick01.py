@@ -36,7 +36,7 @@ class ConditonStockPick01(ConditonStockPick):
                          'pe', 'pe_ttm', 'pb', 'ps', 'ps_ttm', 'total_share', 'float_share', 'total_mv', 'circ_mv',
                          'dv_ratio', 'dv_ttm', 'changepercent', 'trade', 'volume', 'amount',
                          'ann_date', 'end_date', 'eps', 'current_ratio', 'quick_ratio', 'bps',
-                         'netprofit_margin', 'grossprofit_margin', 'profit_to_gr', 'op_of_gr', 'roe',
+                         'netprofit_margin', 'grossprofit_margin', 'profit_to_gr', 'op_of_gr', 'roe', 'basic_eps_yoy',
                          'roa', 'npta', 'roic', 'roe_yearly', 'roa2_yearly', 'debt_to_assets', 'op_yoy',
                          'ebt_yoy', 'tr_yoy', 'or_yoy', 'equity_yoy', 'update_flag'
                          ]
@@ -46,6 +46,7 @@ class ConditonStockPick01(ConditonStockPick):
                           '股息率', '股息率TTM', '涨跌幅', '现价', '成交量', '成交额',
                           '公告日期', '报告期', '基本每股收益', '流动比率', '速动比率', '每股净资产', '销售净利率',
                           '销售毛利率', '净利润率', '营业利润率', '净资产收益率', '总资产报酬率', '总资产净利润', '投入资本回报率', '年化净资产收益率',
+                          '基本每股收益同比增长率(%)',
                           '年化总资产报酬率', '资产负债率', '营业利润同比增长率', '利润总额同比增长率', '营业总收入同比增长率', '营业收入同比增长率', '净资产同比增长率', '更新标识'
                           ]
         # enable_condtions_dict = dict(zip(condtions_col, condtions_name))
@@ -363,4 +364,11 @@ class ConditonStockPick01(ConditonStockPick):
         max_val = val[1]
         data = self.base_stock_infos[
             (self.base_stock_infos["equity_yoy"] >= min_val) & (self.base_stock_infos["equity_yoy"] < max_val)]
+        return data
+
+    def __basic_eps_yoy(self, val: list):
+        min_val = val[0]
+        max_val = val[1]
+        data = self.base_stock_infos[
+            (self.base_stock_infos["basic_eps_yoy"] >= min_val) & (self.base_stock_infos["basic_eps_yoy"] < max_val)]
         return data

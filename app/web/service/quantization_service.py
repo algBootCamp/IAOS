@@ -5,8 +5,10 @@ import logging
 
 from db.myredis.redis_cli import RedisClient
 from quantization.securitypick.conditionstockpick01 import ConditonStockPick01
-
 # ----  log ------ #
+from quantization.securitypick.growth.growthstockpick01 import GrowthStockPick01
+from quotation.cache.cache import LocalBasicDataCache
+
 log = logging.getLogger("log_blueprint")
 log_err = logging.getLogger("log_err")
 
@@ -27,6 +29,19 @@ def get_stks_by_cons(condtions_dict) -> dict:
         symbol = row['symbol']
         target_data[symbol] = row.to_dict()
     return target_data
+
+
+def get_growthstockpick01_stks(top_num: int, weights: dict) -> dict:
+    """获取GrowthStockPick01模型的股票池"""
+    if LocalBasicDataCache.base_stock_infos is None:
+        rediscli = __getrediscli()
+        res = rediscli.get("base_stock_infos")
+        if res is None:
+            LocalBasicDataCache.load_base_stock_infos()
+    # 默认：weights={'roe': 34, 'basic_eps_yoy': 33, 'pe_ttm': 33}
+    #      top_num=5
+    gsp01 = GrowthStockPick01(stocksinfos=LocalBasicDataCache.base_stock_infos, weights=weights)
+    return gsp01.get_target_stock_pool(top_num=top_num)
 
 
 def __getrediscli():

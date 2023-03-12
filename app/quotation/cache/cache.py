@@ -73,6 +73,7 @@ class RemoteBasicDataCache(object):
          ]
         """
         base_stock_infos = BaseDataClean.init_base_stock_infos()
+        # base_stock_infos.to_csv("/Users/zhangtao/projects/IAOS/iaos-server/app/test/testdata/base_stock_infos.csv")
         cls.rediscli.set("base_stock_infos", dumps_data(base_stock_infos))
 
     @classmethod

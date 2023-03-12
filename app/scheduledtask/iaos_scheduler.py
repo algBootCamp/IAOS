@@ -135,7 +135,7 @@ class IAOSTask(Singleton):
                                start_date='2023-3-1', end_date='2099-3-1')
         # 从2023年3月1日开始后的的每天的8点5分执行
         self.scheduler.add_job(id='2', func=self.__update_local_base_data, trigger='cron',
-                               day_of_week='0-6', hour=0, minute=51,
+                               day_of_week='0-6', hour=0, minute=55,
                                start_date='2023-3-1', end_date='2099-3-1')
 
         # 从2023年3月1日开始后的的每周一到周五的23点23分执行
