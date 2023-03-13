@@ -5,6 +5,7 @@ cmd=$1
 #serverNum=$(($((`cat /proc/cpuinfo | grep processor | wc -l`))-1))
 #sed -i "/workers/s/[0-9]\+/$serverNum/" conf/server_cfg.py
 # gunicorn usage to see：https://bbs.huaweicloud.com/blogs/309794
+# https://www.cnblogs.com/lantingg/p/14775590.html
 function start() {
   echo "starting workers"
   gunicorn -k gevent --daemon --max-requests=100 --conf=conf/server_cfg.py app:app
