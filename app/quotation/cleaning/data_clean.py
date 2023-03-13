@@ -54,7 +54,7 @@ class BaseDataClean(object):
     # 上一个交易日
     pretrade_date: str = None
     # 股票池 [上市]
-    stocks_pool = DataFrame()
+    stocks_pool = None
     # 亿 [万--->亿]
     billion = 10000.0 / 100000000.0
     # 股票分类字典
@@ -89,21 +89,7 @@ class BaseDataClean(object):
         return cls.instance
 
     def __init__(self) -> object:
-        # 初始化 股票池 [上市] stocks_pool
-        # self.init_stocks_pool()
-        # 初始化 tscode_set
-        self.init_tscode_set()
-        '''
-        初始化 industry_set small_cap_stocks mid_cap_stocks big_cap_stocks ---- > smb_industry_map
-        将上市的股票 按照大小盘、行业进行分类存储
-        {
-            "小盘股": {"行业1": stockinfoDataFrame, "行业2": stockinfoDataFrame, ...},
-            "中盘股": {"行业1": stockinfoDataFrame, "行业2": stockinfoDataFrame, ...},
-            "大盘股": {"行业1": stockinfoDataFrame, "行业2": stockinfoDataFrame, ...}
-        }
-        '''
-        self.init_smb_industry_map()
-        log.info("BaseDataClean load done.")
+        pass
 
     @classmethod
     @retry(max_retry=3, time_interval=3)
@@ -206,7 +192,8 @@ class BaseDataClean(object):
             raise Exception("BaseDataClean.stocks_pool init Failed! %s" % e)
 
     @classmethod
-    def init_smb_industry_map(cls):
+    @retry(max_retry=3, time_interval=3)
+    def init_smb_industry_map(cls, ):
         """
         计算 smb_industry_map
         {
@@ -271,6 +258,11 @@ class BaseDataClean(object):
             len(BaseDataClean.small_cap_stocks)))
         log.info("BaseDataClean.smb_industry_map init sucess.")
         return BaseDataClean.smb_industry_map
+
+    @classmethod
+    def get_certainday_base_stock_infos(cls, trade_date: str) -> DataFrame:
+        """获取指定日期的base_stock_infos"""
+        pass
 
     @classmethod
     def get_pretrade_date(cls) -> str:

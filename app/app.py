@@ -11,9 +11,8 @@ from flask import Flask, jsonify
 
 from conf.globalcfg import GlobalCfg
 from entity.jsonresp import JsonResponse
-# 路径加载 [后续用作lib加载，便于部署]
-from scheduledtask.iaos_scheduler import IAOSTask
 
+# 路径加载 [后续用作lib加载，便于部署]
 reload(sys)
 sys.path.append('./')
 sys.path.append('../')
@@ -22,6 +21,31 @@ print('IAOS Server %s on %s' % (sys.version, sys.platform))
 
 # get golbal_cfg
 global_cfg = GlobalCfg()
+"""
+全局日志文件key 列表
+其余模块使用：仅需logging.getLogger(key) 即可
+
+app：                主日志，包括flask服务、数据获取、cache、db等
+log_quantization：   量化逻辑日志
+log_schedtask：      定时任务日志
+log_blueprint：      外部功能提供接口日志（controller）
+log_analysis：       因子验证评价逻辑日志
+log_err：            错误日志
+"""
+# ----------------------- global log init ----------------------- #
+log_files = global_cfg.get_log_files()
+# 确保log file path存在 python logging不提供创建日志文件路径
+for file_list in log_files.values():
+    log_filenames = file_list.split(',')
+    for log_filename in log_filenames:
+        os.makedirs(os.path.dirname(log_filename), exist_ok=True)
+log_cfg = "conf/logging.cfg"
+self_path = __file__
+log_cfg_path = self_path.split("app.py", 1)[0] + log_cfg
+logging.config.fileConfig(log_cfg_path)
+# ----------------------- global log init ----------------------- #
+log = logging.getLogger("app")
+log_err = logging.getLogger("log_err")
 
 
 # noinspection PyMethodMayBeStatic
@@ -30,7 +54,7 @@ class IAOSFlask(Flask):
     def __init__(self, *args, **kwargs):
         super(IAOSFlask, self).__init__(*args, **kwargs)
         self._iaos_cfg()
-        self._iaos_init_log()
+        # self._iaos_init_log()
         self._iaos_init()
 
     def _iaos_cfg(self):
@@ -42,50 +66,26 @@ class IAOSFlask(Flask):
         # CORS(app, supports_credentials=True)
 
     def _iaos_init_log(self):
-        """
-        全局日志文件key 列表
-        其余模块使用：仅需logging.getLogger(key) 即可
-
-        app：                主日志，包括flask服务、数据获取、cache、db等
-        log_quantization：   量化逻辑日志
-        log_schedtask：      定时任务日志
-        log_blueprint：      外部功能提供接口日志（controller）
-        log_analysis：       因子验证评价逻辑日志
-        log_err：            错误日志
-        """
-        log_files = global_cfg.get_log_files()
-        # 确保log file path存在 python logging不提供创建日志文件路径
-        for file_list in log_files.values():
-            log_filenames = file_list.split(',')
-            for log_filename in log_filenames:
-                # print(log_filename)
-                os.makedirs(os.path.dirname(log_filename), exist_ok=True)
-        log_cfg = "conf/logging.cfg"
-        self_path = __file__
-        log_cfg_path = self_path.split("app.py", 1)[0] + log_cfg
-        logging.config.fileConfig(log_cfg_path)
-        # ----------------------- global log init ----------------------- #
-        self.log = logging.getLogger("app")
-        self.log_err = logging.getLogger("log_err")
+        pass
 
     def _iaos_init(self):
         def init():
             # TODO
             """常用基础数据缓存"""
             from quotation.cache.cache import RemoteBasicDataCache, LocalBasicDataCache
-            RemoteBasicDataCache.refresh()
+            RemoteBasicDataCache.refresh(is_request=False)
             # 保证RemoteBasicDataCache.refresh执行结束，再进行LocalBasicDataCache.refresh
             LocalBasicDataCache.refresh()
 
-        t1 = threading.Thread(target=init)
-        t1.start()
-
+        t = threading.Thread(target=init)
+        t.start()
         # 蓝图  简单理解蓝图：就是将系统的代码模块化（组件化）
         from web.controller.blueprint import iaos_blue
         self.register_blueprint(iaos_blue)
         """定时任务开始"""
+        from scheduledtask.iaos_scheduler import IAOSTask
         IAOSTask(app=self).start_task()
-        self.log.info("IAOS Server will Start!")
+        log.info("IAOS Server will Start!")
 
     def make_response(self, rv):
         """
@@ -118,7 +118,7 @@ def start():
         server_info = global_cfg.get_server_info()
         app.run(host=server_info['host'], port=int(server_info['port']))
     except Exception as e:
-        app.log_err.error("IAOS Server Failed! {}".format(e))
+        log_err.error("IAOS Server Failed! {}".format(e))
         raise Exception("IAOS Server Failed! %s" % e)
 
 

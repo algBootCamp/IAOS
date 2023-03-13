@@ -85,7 +85,9 @@ class RemoteBasicDataCache(object):
         """
         base_stock_infos = BaseDataClean.init_base_stock_infos()
         # base_stock_infos.to_csv("/Users/zhangtao/projects/IAOS/iaos-server/app/test/testdata/base_stock_infos.csv")
+        BaseDataClean.stocks_pool.to_csv("/Users/zhangtao/projects/IAOS/iaos-server/app/test/testdata/stocks_pool.csv")
         cls.rediscli.set("base_stock_infos", dumps_data(base_stock_infos))
+        cls.rediscli.set("stocks_pool", dumps_data(BaseDataClean.stocks_pool))
 
     @classmethod
     def store_smb_industry_map(cls):
@@ -111,6 +113,7 @@ class LocalBasicDataCache(object):
     smb_industry_map = None
     industry_set = None
     base_stock_infos = None
+    stocks_pool = None
 
     def __new__(cls, *args, **kwargs):
         if cls.instance is None:
@@ -142,11 +145,15 @@ class LocalBasicDataCache(object):
          ]
         """
         data = cls.rediscli.get("base_stock_infos")
-        if data is not None:
+        data1 = cls.rediscli.get("stocks_pool")
+        if data is not None and data1 is not None:
             cls.base_stock_infos = loads_data(data)
+            cls.stocks_pool = loads_data(data1)
         else:
             cls.base_stock_infos = BaseDataClean.init_base_stock_infos()
+            cls.stocks_pool = BaseDataClean.stocks_pool
             cls.rediscli.set("base_stock_infos", dumps_data(cls.base_stock_infos))
+            cls.rediscli.set("stocks_pool", dumps_data(cls.stocks_pool))
 
     @classmethod
     def load_smb_industry_map(cls):
