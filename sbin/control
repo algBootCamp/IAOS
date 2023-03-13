@@ -7,6 +7,9 @@ cmd=$1
 # gunicorn usage to see：https://bbs.huaweicloud.com/blogs/309794
 # https://www.cnblogs.com/lantingg/p/14775590.html
 function start() {
+  if [ ! -d "../logs/gunicornlog" ]; then
+    mkdir -p ../logs/gunicornlog
+  fi
   echo "starting workers"
   gunicorn -k gevent --daemon --max-requests=100 --conf=conf/server_cfg.py app:app
 }

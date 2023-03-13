@@ -106,7 +106,7 @@ class BaseDataClean(object):
         log.info("BaseDataClean load done.")
 
     @classmethod
-    @retry(max_retry=3,time_interval=3)
+    @retry(max_retry=3, time_interval=3)
     def init_base_stock_infos(cls):
         """
         init base_stock_infos
@@ -123,7 +123,7 @@ class BaseDataClean(object):
                     'pe', 'pe_ttm', 'pb', 'ps', 'ps_ttm', 'total_share', 'float_share', 'total_mv', 'circ_mv',
                     'dv_ratio', 'dv_ttm', 'changepercent', 'trade', 'volume', 'amount',
                     'ann_date', 'end_date', 'eps', 'current_ratio', 'quick_ratio', 'bps',
-                    'netprofit_margin', 'grossprofit_margin', 'profit_to_gr', 'op_of_gr', 'roe','basic_eps_yoy',
+                    'netprofit_margin', 'grossprofit_margin', 'profit_to_gr', 'op_of_gr', 'roe', 'basic_eps_yoy',
                     'roa', 'npta', 'roic', 'roe_yearly', 'roa2_yearly', 'debt_to_assets', 'op_yoy',
                     'ebt_yoy', 'tr_yoy', 'or_yoy', 'equity_yoy', 'update_flag'
                     ]
@@ -132,7 +132,7 @@ class BaseDataClean(object):
                       '市盈率', '市盈率TTM', '市净率', '市销率', '市销率TTM', '总股本', '流通股本', '总市值', '流通市值',
                       '股息率', '股息率TTM', '涨跌幅', '现价', '成交量', '成交额',
                       '公告日期', '报告期', '基本每股收益', '流动比率', '速动比率', '每股净资产', '销售净利率',
-                      '销售毛利率', '净利润率', '营业利润率', '净资产收益率', '总资产报酬率', '总资产净利润', '投入资本回报率', '年化净资产收益率','基本每股收益同比增长率(%)',
+                      '销售毛利率', '净利润率', '营业利润率', '净资产收益率', '总资产报酬率', '总资产净利润', '投入资本回报率', '年化净资产收益率', '基本每股收益同比增长率(%)',
                       '年化总资产报酬率', '资产负债率', '营业利润同比增长率', '利润总额同比增长率', '营业总收入同比增长率', '营业收入同比增长率', '净资产同比增长率', '更新标识'
                       ]
         # rename_dict = dict(zip(need_col, rename_col))
@@ -171,7 +171,7 @@ class BaseDataClean(object):
             # 年化净资产收益率 年化总资产报酬率 资产负债率 营业利润同比增长率(%) 利润总额同比增长率(%)
             # 营业总收入同比增长率(%) 营业收入同比增长率(%) 净资产同比增长率 更新标识
             f_col = ['ts_code', 'ann_date', 'end_date', 'eps', 'current_ratio', 'quick_ratio', 'bps',
-                     'netprofit_margin', 'grossprofit_margin', 'profit_to_gr', 'op_of_gr', 'roe','basic_eps_yoy',
+                     'netprofit_margin', 'grossprofit_margin', 'profit_to_gr', 'op_of_gr', 'roe', 'basic_eps_yoy',
                      'roa', 'npta', 'roic', 'roe_yearly', 'roa2_yearly', 'debt_to_assets', 'op_yoy',
                      'ebt_yoy', 'tr_yoy', 'or_yoy', 'equity_yoy', 'update_flag']
             fina_indicator: DataFrame = BaseDataClean.tsdatacapture.get_fina_indicator()

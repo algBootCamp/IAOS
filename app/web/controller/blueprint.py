@@ -8,7 +8,7 @@ import logging
 from flask import Blueprint, request
 
 from entity.jsonresp import JsonResponse
-from web.service.data_service import get_industry
+from web.service.data_service import get_industry, to_refresh_cache
 # contoller
 from web.service.quantization_service import get_stks_by_cons, get_growthstockpick01_stks
 
@@ -47,6 +47,13 @@ log_err = logging.getLogger("log_err")
 def main():
     # log.info("访问 %s 接口." % sys._getframe().f_code.co_name)
     return "I'm IAOS Server ~"
+
+
+@iaos_blue.route('/refresh_cache.do', methods=['POST', 'GET'])
+@blueprintlog(log)
+def refresh_cache():
+    to_refresh_cache()
+    return "IAOS Server begin to refresh cache."
 
 
 @iaos_blue.route('/display_industry.do', methods=['POST', 'GET'])

@@ -41,12 +41,23 @@ class RemoteBasicDataCache(object):
         return cls.instance
 
     @classmethod
-    def refresh(cls):
+    def refresh(cls, is_request=False):
+        """
+        args：is_request=True: 前端请求强制刷新缓存
+        """
         res = False
         cls.updateflag = 0
         cls.rediscli.set("RemoteBasicDataCache.updateflag", cls.updateflag)
         try:
-            if cls.rl.lock():
+            if is_request:
+                cls.store_base_stock_infos()
+                cls.store_smb_industry_map()
+                res = True
+                cls.updateflag = 1
+                cls.rediscli.set("RemoteBasicDataCache.updateflag", cls.updateflag)
+                log.info("远程全部股票每日重要的基础数据更新完毕.")
+                return res
+            if not is_request and cls.rl.lock():
                 cls.store_base_stock_infos()
                 cls.store_smb_industry_map()
                 res = True

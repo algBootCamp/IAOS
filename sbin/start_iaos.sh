@@ -1,7 +1,7 @@
 #!/bin/sh
 
 scriptname=$0
-targetdir=$(echo $scriptname | awk -F 'sbin' '{print $(NF-1)}')
+targetdir=`echo $scriptname | awk -F 'sbin' '{print $(NF-1)}'`
 app="app"
 targetdir=$targetdir$app
 cd $targetdir

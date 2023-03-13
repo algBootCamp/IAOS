@@ -6,5 +6,5 @@ export FLASK_APP=../app/app
 # flask run --help
 #flask run --reload --debugger -p 8888
 # reload：热加载  debugger：debug模式
-flask run -p 8888
+flask run  --debugger -p 8888
 #flask start-iaos dev

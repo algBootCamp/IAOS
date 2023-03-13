@@ -7,6 +7,8 @@ proc_name = "iaos"
 default_proc_name = "iaos"
 
 # logs
-pidfile = '../../logs/gunicorn.pid'
-logfile = '../../logs/gunicorn.log'
 loglevel = 'debug'
+pidfile = '../logs/gunicornlog/gunicorn.pid'
+logfile = '../logs/gunicornlog/log.log'
+errorlog = '../logs/gunicornlog/error.log'
+accesslog = '../logs/gunicornlog/access.log'

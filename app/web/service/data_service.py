@@ -2,9 +2,10 @@
 __author__ = 'carl'
 
 import logging
+import threading
 
 from db.myredis.redis_cli import RedisClient
-from quotation.cache.cache import LocalBasicDataCache
+from quotation.cache.cache import LocalBasicDataCache, RemoteBasicDataCache
 from util.obj_util import loads_data
 
 # ----  log ------ #
@@ -14,6 +15,20 @@ log_err = logging.getLogger("log_err")
 
 # ----  log ------ #
 
+def to_refresh_cache():
+    """强制刷新缓存"""
+    log.info("refresh the remote & local cache.")
+
+    def refresh():
+        # TODO
+        """常用基础数据缓存"""
+        from quotation.cache.cache import RemoteBasicDataCache, LocalBasicDataCache
+        RemoteBasicDataCache.refresh(is_request=True)
+        # 保证RemoteBasicDataCache.refresh执行结束，再进行LocalBasicDataCache.refresh
+        LocalBasicDataCache.refresh()
+
+    t1 = threading.Thread(target=refresh)
+    t1.start()
 
 def get_industry():
     """
