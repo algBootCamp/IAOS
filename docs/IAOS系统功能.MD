@@ -73,3 +73,4 @@
 - [waditu研报](https://waditu.com/#/search/report)
 - [waditu doc](https://github.com/waditu)
 - [CZSC](https://s0cqcxuy3p.feishu.cn/wiki/wikcnNgfYsvULhW8SC5rd1t97Pb?create_from=create_doc_to_wiki)
+- [vnpy](https://github.com/vnpy/vnpy)
