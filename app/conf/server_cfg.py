@@ -5,3 +5,8 @@ cpu_num = multiprocessing.cpu_count()
 workers = cpu_num - int(round(cpu_num / 10.0))
 proc_name = "iaos"
 default_proc_name = "iaos"
+
+# logs
+pidfile = '../../logs/gunicorn.pid'
+logfile = '../../logs/gunicorn.log'
+loglevel = 'debug'
