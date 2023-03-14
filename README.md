@@ -16,6 +16,4 @@
 
 ---
 #### IAOS总体架构
-![IAOS架构](https://user-images.githubusercontent.com/30285467/224603188-175714c0-b4b9-4d37-8ba3-16020455f386.png)
-
-
+![IAOS架构](https://user-images.githubusercontent.com/30285467/224883306-d09a5aaf-658d-4a06-a96a-a47308a8e06d.png)
