@@ -74,3 +74,4 @@
 - [waditu doc](https://github.com/waditu)
 - [CZSC](https://s0cqcxuy3p.feishu.cn/wiki/wikcnNgfYsvULhW8SC5rd1t97Pb?create_from=create_doc_to_wiki)
 - [vnpy](https://github.com/vnpy/vnpy)
+- [数据获取](https://zhuanlan.zhihu.com/p/219633414)
