@@ -153,14 +153,14 @@ class TuShareDataCapturer(object):
         df = self.pro.monthly(ts_code=ts_code, trade_date=trade_date, start_date=start_date, end_date=end_date)
         return df
 
-    @retry(max_retry=3, time_interval=2)
-    def get_pro_bar(self, ts_code: str, freq: str = 'D', adj: str = 'qfq', asset: str = 'E',
-                    start_date: str = None, end_date: str = None, ma: list = [], factors: list = None,
-                    adjfactor: str = None) -> DataFrame:
+    @retry(max_retry=3, time_interval=5)
+    def get_pro_bar(self, ts_code='', start_date='', end_date='', freq='D', asset='E',
+                    adj=None, ma=[], factors=None, adjfactor=False,
+                    offset=None, limit=None, contract_type='') -> DataFrame:
         """
         通用行情接口 根据入参，可以获取 未复权、前、后复权行情(只针对股票,即asset=E)
         入参说明：
-        ts_code	    str	    Y	证券代码，不支持多值输入，多值输入获取结果会有重复记录
+        ts_code	    str	    Y	证券代码，不支持多值输入，多值输入获取结果会有重复记录 [经过验证，如果start_date=end_date，不会有重复值]
         api	        str	    N	pro版api对象，如果初始化了set_token，此参数可以不需要
         start_date	str	    N	开始日期 (日线格式：YYYYMMDD，提取分钟数据请用2019-09-01 09:00:00这种格式)
         end_date	str	    N	结束日期 (日线格式：YYYYMMDD)
@@ -181,7 +181,9 @@ class TuShareDataCapturer(object):
             code/open/close/high/low/avg_price：均价  position：持仓量  vol：成交总量
         """
         df = ts.pro_bar(ts_code=ts_code, freq=freq, adj=adj, asset=asset, ma=ma,
-                        factors=factors, adjfactor=adjfactor, start_date=start_date, end_date=end_date)
+                        factors=factors, adjfactor=adjfactor, start_date=start_date, end_date=end_date, offset=offset,
+                        limit=limit, contract_type=contract_type)
+
         return df
 
     @retry(max_retry=5, time_interval=3)
@@ -639,18 +641,19 @@ class TuShareDataCapturer(object):
                                   start_date=start_date, end_date=end_date)
         return df
 
-    # TODO list
-    # 公募基金
-    # 期货
-    # 现货
-    # 期权
-    # 债券
-    # 外汇
-    # 港股
-    # 美股
-    # 行业经济
-    # 宏观经济
-    # 另类数据
-    # 财富管理
-    # 数据索引
-    '''----------------------以上：沪深股票数据----------------------'''
+
+# TODO list
+# 公募基金
+# 期货
+# 现货
+# 期权
+# 债券
+# 外汇
+# 港股
+# 美股
+# 行业经济
+# 宏观经济
+# 另类数据
+# 财富管理
+# 数据索引
+'''----------------------以上：沪深股票数据----------------------'''
