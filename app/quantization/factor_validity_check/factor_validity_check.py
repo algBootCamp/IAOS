@@ -12,6 +12,7 @@ from quotation.captures.tsdata_capturer import TuShareDataCapturer
 
 """
 因子有效性校验：
+目前该模块支持 tsdatacapture.get_daily_basic 返回字段的校验
 针对每个候选因子
 
 0- 获取股票池，取近7年内均有数据的股票，以此为基准
@@ -35,7 +36,7 @@ class FactorValidityCheck(Singleton):
         now_time = time.localtime(time.time())
         self.this_year = now_time.tm_year
         self.this_month = now_time.tm_mon
-        self.sample_years = list(reversed([str(self.this_year - i) for i in range(self.sample_periods+1)]))
+        self.sample_years = list(reversed([str(self.this_year - i) for i in range(self.sample_periods + 1)]))
         self.sample_months = None
         self.init_sample_months()
 
@@ -80,31 +81,7 @@ class FactorValidityCheck(Singleton):
                 if int(start_date) - int(end_date) > 0:
                     end_date, start_date = start_date, end_date
 
-                basics_data: DataFrame = self.tsdatacapture.get_daily_basic(trade_date=start_date)[[
-                    'ts_code', 'circ_mv', factor]]
-
-                basics_data.dropna(axis=0, how='any', subset=[factor], inplace=True)
-                score = basics_data[['ts_code', factor]].sort_values(by=factor)
-
-                # 流通市值
-                cmv = basics_data[['ts_code', 'circ_mv']].sort_values(by='ts_code')
-                cmv.index = cmv['ts_code']
-                port1 = list(score['ts_code'])[: len(score.index) // 5]
-                port2 = list(score['ts_code'])[len(score.index) // 5: 2 * len(score.index) // 5]
-                port3 = list(score['ts_code'])[2 * len(score.index) // 5: -2 * len(score.index) // 5]
-                port4 = list(score['ts_code'])[-2 * len(score.index) // 5: -len(score.index) // 5]
-                port5 = list(score['ts_code'])[-len(score.index) // 5:]
-                ports = [port1, port2, port3, port4, port5]
-                port_index = 0
-                for port in ports:
-                    port_index += 1
-                    weighted_m_return = self.cal_port_monthly_return(port, start_date, end_date, cmv)
-                    if not port_profit.keys().__contains__("port_" + str(port_index)):
-                        prof_list = []
-                        prof_list.append(weighted_m_return)
-                        port_profit["port_" + str(port_index)] = prof_list
-                    else:
-                        port_profit["port_" + str(port_index)].append(weighted_m_return)
+                self.cut_data_by_factor(factor, port_profit, start_date, end_date)
         final_port_i = pd.DataFrame(port_profit)
         # to see https://zhuanlan.zhihu.com/p/390849319
         # 复利的本息计算公式是：F=P（1+i)^n P=本金，i=利率，n=期限
@@ -115,6 +92,35 @@ class FactorValidityCheck(Singleton):
         # 重新赋值  sample_months
         self.init_sample_months()
         return annual_return
+
+    def cut_data_by_factor(self, factor, port_profit, start_date, end_date):
+        """
+        获取含有因子数据的行情并分割
+        如果所需因子不在 get_daily_basic 需要重写该方法
+        """
+        basics_data: DataFrame = self.tsdatacapture.get_daily_basic(trade_date=start_date)[[
+            'ts_code', 'circ_mv', factor]]
+        basics_data.dropna(axis=0, how='any', subset=[factor], inplace=True)
+        score = basics_data[['ts_code', factor]].sort_values(by=factor)
+        # 流通市值
+        cmv = basics_data[['ts_code', 'circ_mv']].sort_values(by='ts_code')
+        cmv.index = cmv['ts_code']
+        port1 = list(score['ts_code'])[: len(score.index) // 5]
+        port2 = list(score['ts_code'])[len(score.index) // 5: 2 * len(score.index) // 5]
+        port3 = list(score['ts_code'])[2 * len(score.index) // 5: -2 * len(score.index) // 5]
+        port4 = list(score['ts_code'])[-2 * len(score.index) // 5: -len(score.index) // 5]
+        port5 = list(score['ts_code'])[-len(score.index) // 5:]
+        ports = [port1, port2, port3, port4, port5]
+        port_index = 0
+        for port in ports:
+            port_index += 1
+            weighted_m_return = self.cal_port_monthly_return(port, start_date, end_date, cmv)
+            if not port_profit.keys().__contains__("port_" + str(port_index)):
+                prof_list = []
+                prof_list.append(weighted_m_return)
+                port_profit["port_" + str(port_index)] = prof_list
+            else:
+                port_profit["port_" + str(port_index)].append(weighted_m_return)
 
     def cal_port_monthly_return(self, port, startdate, enddate, CMV):
         """
