@@ -12,7 +12,7 @@ from quotation.captures.tsdata_capturer import TuShareDataCapturer
 
 """
 因子有效性校验：
-目前该模块支持 tsdatacapture.get_daily_basic 返回字段的校验
+目前该模块支持 tsdatacapture.get_daily_basic 返回字段的校验，继承复写重写 cut_data_by_factor 即可
 针对每个候选因子
 
 0- 获取股票池，取近7年内均有数据的股票，以此为基准
@@ -80,7 +80,7 @@ class FactorValidityCheck(Singleton):
                 end_date = trade_cal.tail(1)["cal_date"].to_list()[0]
                 if int(start_date) - int(end_date) > 0:
                     end_date, start_date = start_date, end_date
-
+                # 可重写的方法
                 self.cut_data_by_factor(factor, port_profit, start_date, end_date)
         final_port_i = pd.DataFrame(port_profit)
         # to see https://zhuanlan.zhihu.com/p/390849319
