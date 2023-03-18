@@ -1,6 +1,6 @@
 # IAOS(Intelligent analysis of securities)证券智能分析系统
 
-<p align="center">
+<p align="light">
     <img src ="https://img.shields.io/badge/platform-windows|linux|macos-yellow.svg"/>
     <img src ="https://img.shields.io/badge/python-3.7|3.8|3.9|3.10-blue.svg" />
 </p>
@@ -23,3 +23,8 @@
 #### IAOS总体架构
 ![IAOS架构](https://user-images.githubusercontent.com/30285467/224883306-d09a5aaf-658d-4a06-a96a-a47308a8e06d.png)
 
+--- 
+#### 更多
+<p align="light">
+  <img src ="https://user-images.githubusercontent.com/30285467/226108645-556a6739-d193-4c0b-a2d5-0f4749d13044.jpg"/>
+</p>
