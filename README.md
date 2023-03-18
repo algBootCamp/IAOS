@@ -1,5 +1,10 @@
 # IAOS(Intelligent analysis of securities)证券智能分析系统
 
+<p align="center">
+    <img src ="https://img.shields.io/badge/platform-windows|linux|macos-yellow.svg"/>
+    <img src ="https://img.shields.io/badge/python-3.7|3.8|3.9|3.10-blue.svg" />
+</p>
+
 ---
 #### IAOS是一款Python开发的中低频率智能证券量化分析系统
 - 主要指导思想：价值投资为主，技术分析为辅
@@ -17,3 +22,4 @@
 ---
 #### IAOS总体架构
 ![IAOS架构](https://user-images.githubusercontent.com/30285467/224883306-d09a5aaf-658d-4a06-a96a-a47308a8e06d.png)
+
