@@ -10,6 +10,7 @@ log = logging.getLogger("log_quantization")
 log_err = logging.getLogger("log_err")
 
 
+# noinspection PyIncorrectDocstring
 def get_data_percentile(data: list, v_low=50.0, v_mid=83.83, v_high=94.22) -> tuple:
     """
     获取 data 最大值 最小值  高、中、低分位数
