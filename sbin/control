@@ -2,6 +2,9 @@
 
 cmd=$1
 
+#pip freeze > requirements.txt # 生成requirements.txt
+#pip install -r requirements.txt # 从requirements.txt安装依赖
+
 #serverNum=$(($((`cat /proc/cpuinfo | grep processor | wc -l`))-1))
 #sed -i "/workers/s/[0-9]\+/$serverNum/" conf/server_cfg.py
 # gunicorn usage to see：https://bbs.huaweicloud.com/blogs/309794
