@@ -1,5 +1,7 @@
-from unittest import TestCase
 import time
+from unittest import TestCase
+
+from pandas import DataFrame
 
 
 class Test(TestCase):
@@ -31,10 +33,19 @@ class Test(TestCase):
         #     CMV.ix[port].sum())
         now_time = time.localtime(time.time())
         this_year = now_time.tm_year
-        this_month =now_time.tm_mon
+        this_month = now_time.tm_mon
         print("---------------")
-        d={"port1":[0.2,0.3,-0.2,2.3],"port2":[0.1,0.4,-0.1,2.3]}
-        monthly_return=pd.DataFrame(d)
-        total_return=(monthly_return + 1).cumprod().iloc[-1,:]-1
+        d = {"port1": [0.2, 0.3, -0.2, 2.3], "port2": [0.1, 0.4, -0.1, 2.3]}
+        monthly_return = pd.DataFrame(d)
+        total_return = (monthly_return + 1).cumprod().iloc[-1, :] - 1
         annual_return = (total_return + 1) ** (1. / 6) - 1
         # xxxx=(d + 1).T.cumprod().iloc[-1, :] - 1
+
+        df1 = pd.DataFrame({'A': ['A0', 'A1'],
+                            'B': ['B0', 'B1']},
+                           index=[0, 1])
+        df2 = DataFrame()
+
+        ddd=pd.concat([df1,df2],axis=0)
+
+        print(ddd)
