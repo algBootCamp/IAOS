@@ -6,6 +6,7 @@ import logging
 import numpy as np
 from pandas import DataFrame
 
+from quantization.securitypick.stock_pick import StockPick
 from util.cal_util import get_data_percentile, limit_score_range
 
 """
@@ -30,15 +31,13 @@ log_err = logging.getLogger("log_err")
 
 # ----  log ------ #
 
-class GrowthStockPick01(object):
+class GrowthStockPick01(StockPick):
 
-    def __init__(self, stocksinfos: DataFrame, weights={'roe': 34, 'basic_eps_yoy': 33, 'pe_ttm': 33}):
-        self.stocksinfos = stocksinfos.copy(deep=True)
-        self.weights = weights
+    def __init__(self):
         self.target_filter_data = None
         self.stock_pool = None
-        self.__filter_data()
-        self.__score_filter_data()
+        self.stocksinfos = None
+        self.weights = None
 
     def __filter_data(self):
         """
@@ -101,10 +100,16 @@ class GrowthStockPick01(object):
         except Exception as e:
             log_err.error("GrowthStockPick01.score_filter_data Exception:{}".format(e))
 
+    def init_data(self, stocksinfos: DataFrame, weights={'roe': 34, 'basic_eps_yoy': 33, 'pe_ttm': 33}):
+        self.stocksinfos = stocksinfos.copy(deep=True)
+        self.weights = weights
+
     def get_target_stock_pool(self, top_num: int = 5):
         """
         获取该模型下得到的股票池
         """
+        self.__filter_data()
+        self.__score_filter_data()
         if self.target_filter_data is None or len(self.target_filter_data.index) == 0:
             log.info("GrowthStockPick01 has no stock_pool!")
             return None

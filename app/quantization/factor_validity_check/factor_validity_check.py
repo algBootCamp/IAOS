@@ -101,7 +101,7 @@ class FactorValidityCheck(Singleton):
             fac_ic = self.effect_test_df.loc['ic', fac]
             if abs(fac_ic) < self.min_corr:
                 self.effective_factors.drop(columns=[fac], axis=1, inplace=True)
-        print(self.effective_factors)
+        # print(self.effective_factors)
         return self.effective_factors
 
     def check_factor_validity(self):

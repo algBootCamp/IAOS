@@ -70,3 +70,5 @@ Werkzeug==2.2.3
 xlrd==2.0.1
 zope.event==4.6
 zope.interface==6.0
+
+QuantStats~=0.0.59

@@ -122,63 +122,13 @@ class BaseDataClean(object):
                       '年化总资产报酬率', '资产负债率', '营业利润同比增长率', '利润总额同比增长率', '营业总收入同比增长率', '营业收入同比增长率', '净资产同比增长率', '更新标识'
                       ]
         # rename_dict = dict(zip(need_col, rename_col))
+        trade_date = BaseDataClean.get_pretrade_date()
         try:
-            cls.init_stocks_pool()
-            # 市场、行业数据
-            ex_indu_data = BaseDataClean.stocks_pool
-            # add exchange  df.insert(loc=len(df.columns), column='player', value=player_vals)
-            exchange_data = ex_indu_data['ts_code'].tolist()
-            exchange_data = [x.split('.')[1] for x in exchange_data]
-            exchange_data = pd.Series(exchange_data)
-            # print(exchange_data)
-            ex_indu_data.insert(loc=len(ex_indu_data.columns), column='exchange', value=exchange_data)
-            # 全部股票每日重要的基本面指标
-            # 'close', 'turnover_rate','turnover_rate_f', 'volume_ratio',
-            b_col = ['ts_code', 'close', 'turnover_rate', 'turnover_rate_f', 'volume_ratio', 'pe', 'pe_ttm', 'pb', 'ps',
-                     'ps_ttm', 'total_share', 'float_share', 'total_mv',
-                     'circ_mv', 'dv_ratio', 'dv_ttm']
-            basics_data: DataFrame = BaseDataClean.tsdatacapture.get_daily_basic(
-                trade_date=BaseDataClean.get_pretrade_date())[b_col]
-            # print(basics_data.head(1).to_dict())
-            base_stock_infos = pd.merge(left=ex_indu_data, right=basics_data, on='ts_code')
-
-            # 股价1、涨跌幅1、成交额1  振幅、主力资金、委比、涨跌停
-            # 近一个日交易日所有股票的交易数据
-            # 代码,涨跌幅,现价,成交量,换手率,成交额,
-            t_col = ['code', 'changepercent', 'trade', 'volume', 'amount']
-            trade_data: DataFrame = BaseDataClean.tsdatacapture.get_today_all()[t_col]
-            trade_data.rename(columns={'code': 'symbol'}, inplace=True)
-            base_stock_infos = pd.merge(left=base_stock_infos, right=trade_data,
-                                        on='symbol')
-            # print(trade_data.head(1).to_dict())
-
-            # TS股票代码 公告日期 报告期 基本每股收益  流动比率  速动比率  每股净资产 销售净利率  销售毛利率
-            # 营业净利率  净利润率  净资产收益率 总资产报酬率 总资产净利润  投入资本回报率
-            # 年化净资产收益率 年化总资产报酬率 资产负债率 营业利润同比增长率(%) 利润总额同比增长率(%)
-            # 营业总收入同比增长率(%) 营业收入同比增长率(%) 净资产同比增长率 更新标识
-            f_col = ['ts_code', 'ann_date', 'end_date', 'eps', 'current_ratio', 'quick_ratio', 'bps',
-                     'netprofit_margin', 'grossprofit_margin', 'profit_to_gr', 'op_of_gr', 'roe', 'basic_eps_yoy',
-                     'roa', 'npta', 'roic', 'roe_yearly', 'roa2_yearly', 'debt_to_assets', 'op_yoy',
-                     'ebt_yoy', 'tr_yoy', 'or_yoy', 'equity_yoy', 'update_flag']
-            fina_indicator: DataFrame = BaseDataClean.tsdatacapture.get_fina_indicator()
-            if fina_indicator is not None:
-                fina_indicator = fina_indicator[f_col]
-                fina_indicator.drop_duplicates(subset=['ts_code'], keep='first', inplace=True)
-                base_stock_infos = pd.merge(left=base_stock_infos, right=fina_indicator,
-                                            on='ts_code')
-                # print(base_stock_infos)
-                # print(base_stock_infos.head(1).to_dict())
-            # '总市值', '流通市值'[万元--->亿元]
-            # '总股本', '流通股本'[万股--->亿股]
-            if base_stock_infos is not None:
-                base_stock_infos['total_share'] = base_stock_infos['total_share'] * BaseDataClean.billion
-                base_stock_infos['float_share'] = base_stock_infos['float_share'] * BaseDataClean.billion
-                base_stock_infos['total_mv'] = base_stock_infos['total_mv'] * BaseDataClean.billion
-                base_stock_infos['circ_mv'] = base_stock_infos['circ_mv'] * BaseDataClean.billion
-            log.info("base_stock_infos init success.")
+            base_stock_infos = BaseDataClean.get_certainday_base_stock_infos(trade_date=trade_date)
+            log.info("last day(%s) base_stock_infos init success." % trade_date)
             return base_stock_infos
         except Exception as e:
-            log_err.error("base_stock_infos init Failed!%s" % e)
+            log_err.error("last day(%s) base_stock_infos init Failed! %s" % (trade_date, e))
             raise e
 
     @classmethod
@@ -193,7 +143,7 @@ class BaseDataClean(object):
 
     @classmethod
     @retry(max_retry=3, time_interval=3)
-    def init_smb_industry_map(cls, ):
+    def init_smb_industry_map(cls):
         """
         计算 smb_industry_map
         {
@@ -262,7 +212,63 @@ class BaseDataClean(object):
     @classmethod
     def get_certainday_base_stock_infos(cls, trade_date: str) -> DataFrame:
         """获取指定日期的base_stock_infos"""
-        pass
+        try:
+            cls.init_stocks_pool()
+            # 市场、行业数据
+            ex_indu_data = BaseDataClean.stocks_pool
+            # add exchange  df.insert(loc=len(df.columns), column='player', value=player_vals)
+            exchange_data = ex_indu_data['ts_code'].tolist()
+            exchange_data = [x.split('.')[1] for x in exchange_data]
+            exchange_data = pd.Series(exchange_data)
+            # print(exchange_data)
+            ex_indu_data.insert(loc=len(ex_indu_data.columns), column='exchange', value=exchange_data)
+            # 全部股票每日重要的基本面指标
+            # 'close', 'turnover_rate','turnover_rate_f', 'volume_ratio',
+            b_col = ['ts_code', 'close', 'turnover_rate', 'turnover_rate_f', 'volume_ratio', 'pe', 'pe_ttm', 'pb', 'ps',
+                     'ps_ttm', 'total_share', 'float_share', 'total_mv',
+                     'circ_mv', 'dv_ratio', 'dv_ttm']
+            basics_data: DataFrame = BaseDataClean.tsdatacapture.get_daily_basic(
+                trade_date=trade_date)[b_col]
+            base_stock_infos = pd.merge(left=ex_indu_data, right=basics_data, on='ts_code')
+
+            # 股价1、涨跌幅1、成交额1  振幅、主力资金、委比、涨跌停
+            # 近一个日交易日所有股票的交易数据
+            # 代码,涨跌幅,现价,成交量,换手率,成交额,
+            t_col = ['ts_code', 'pct_chg', 'close', 'vol', 'amount']
+            trade_data: DataFrame = BaseDataClean.tsdatacapture.get_pro_bar(asset='E', start_date=trade_date,
+                                                                            end_date=trade_date)[t_col]
+            # trade_data: DataFrame = BaseDataClean.tsdatacapture.get_today_all()[t_col]
+            trade_data.rename(columns={'pct_chg': 'changepercent',
+                                       'close': 'trade',
+                                       'vol': 'volume'}, inplace=True)
+            base_stock_infos = pd.merge(left=base_stock_infos, right=trade_data,
+                                        on='ts_code')
+            # 取上一年年报财务数据
+            final_period = str(int(trade_date[0:4]) - 1) + "1231"
+            # TS股票代码 公告日期 报告期 基本每股收益  流动比率  速动比率  每股净资产 销售净利率  销售毛利率
+            # 营业净利率  净利润率  净资产收益率 总资产报酬率 总资产净利润  投入资本回报率
+            # 年化净资产收益率 年化总资产报酬率 资产负债率 营业利润同比增长率(%) 利润总额同比增长率(%)
+            # 营业总收入同比增长率(%) 营业收入同比增长率(%) 净资产同比增长率 更新标识
+            f_col = ['ts_code', 'ann_date', 'end_date', 'eps', 'current_ratio', 'quick_ratio', 'bps',
+                     'netprofit_margin', 'grossprofit_margin', 'profit_to_gr', 'op_of_gr', 'roe', 'basic_eps_yoy',
+                     'roa', 'npta', 'roic', 'roe_yearly', 'roa2_yearly', 'debt_to_assets', 'op_yoy',
+                     'ebt_yoy', 'tr_yoy', 'or_yoy', 'equity_yoy', 'update_flag']
+            fina_indicator: DataFrame = BaseDataClean.tsdatacapture.get_fina_indicator(period=final_period)
+            if fina_indicator is not None:
+                fina_indicator = fina_indicator[f_col]
+                fina_indicator.drop_duplicates(subset=['ts_code'], keep='first', inplace=True)
+                base_stock_infos = pd.merge(left=base_stock_infos, right=fina_indicator, on='ts_code')
+            # '总市值', '流通市值'[万元--->亿元] '总股本', '流通股本'[万股--->亿股]
+            if base_stock_infos is not None:
+                base_stock_infos['total_share'] = base_stock_infos['total_share'] * BaseDataClean.billion
+                base_stock_infos['float_share'] = base_stock_infos['float_share'] * BaseDataClean.billion
+                base_stock_infos['total_mv'] = base_stock_infos['total_mv'] * BaseDataClean.billion
+                base_stock_infos['circ_mv'] = base_stock_infos['circ_mv'] * BaseDataClean.billion
+            log.info("trade_date {} base_stock_infos capture success.".format(trade_date))
+            return base_stock_infos
+        except Exception as e:
+            log_err.error("trade_date %s base_stock_infos capture Failed! %s" % (trade_date, e))
+            raise e
 
     @classmethod
     def get_pretrade_date(cls) -> str:

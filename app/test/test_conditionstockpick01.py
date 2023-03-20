@@ -1,6 +1,6 @@
 import pandas as pd
 
-from quantization.securitypick.conditionstockpick01 import ConditonStockPick01
+from quantization.securitypick.condition.conditionstockpick01 import ConditonStockPick01
 
 
 def test_get_target_data():
@@ -15,4 +15,4 @@ def test_get_target_data():
         # 'pb': [1, 3],
         # 'pe_ttm': [5, 10]
     }
-    csp1.get_target_data(**condtions)
+    csp1.get_target_stock_pool(**condtions)

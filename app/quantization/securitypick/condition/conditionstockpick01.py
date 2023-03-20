@@ -6,7 +6,8 @@ import logging
 import pandas as pd
 from pandas import DataFrame
 
-from quantization.securitypick.conditonstockpick import ConditonStockPick
+from quantization.securitypick.condition.conditonstockpick import ConditonStockPick
+from quantization.securitypick.stock_pick import StockPick
 from quotation.cache.cache import LocalBasicDataCache
 from util.obj_util import method_call
 
@@ -22,7 +23,7 @@ log_err = logging.getLogger("log_err")
 
 # TODO list_date', 'ann_date', 'end_date', 未检索
 # noinspection DuplicatedCode,PyUnusedLocal
-class ConditonStockPick01(ConditonStockPick):
+class ConditonStockPick01(StockPick,ConditonStockPick):
 
     def __init__(self):
         """ 预备数据 base_stock_infos """
@@ -30,7 +31,7 @@ class ConditonStockPick01(ConditonStockPick):
         if self.base_stock_infos is None:
             self.base_stock_infos = LocalBasicDataCache.load_base_stock_infos()
 
-    def get_target_data(self, **condtions) -> DataFrame:
+    def get_target_stock_pool(self, **condtions) -> DataFrame:
         condtions_col = ['ts_code', 'symbol', 'name', 'area', 'industry', 'market', 'list_date', 'exchange',
                          'close', 'turnover_rate', 'turnover_rate_f', 'volume_ratio',
                          'pe', 'pe_ttm', 'pb', 'ps', 'ps_ttm', 'total_share', 'float_share', 'total_mv', 'circ_mv',
