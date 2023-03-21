@@ -1,4 +1,4 @@
-# IAOS(Intelligent analysis of securities)证券智能分析系统
+# IAOS(Intelligent Analysis Of Securities)证券智能分析系统
 
 <p align="light">
     <img src ="https://img.shields.io/badge/platform-windows|linux|macos-yellow.svg"/>
