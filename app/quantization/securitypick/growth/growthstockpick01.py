@@ -35,7 +35,7 @@ class GrowthStockPick01(StockPick):
 
     def __init__(self):
         self.target_filter_data = None
-        self.stock_pool = None
+        self.stock_pool = []
         self.stocksinfos = None
         self.weights = None
 
@@ -115,9 +115,7 @@ class GrowthStockPick01(StockPick):
             return None
         if top_num > 0:
             self.target_filter_data = self.target_filter_data.head(top_num)
-        self.stock_pool = {}
         for index, row in self.target_filter_data.iterrows():
-            symbol = row['symbol']
-            self.stock_pool[symbol] = row.to_dict()
-        log.info("GrowthStockPick01 top{} stock_pool: {}".format(top_num, self.stock_pool.keys()))
-        return self.stock_pool
+            self.stock_pool.append(row['symbol'])
+        log.info("GrowthStockPick01 top{} stock_pool: {}".format(top_num, self.stock_pool))
+        return self.target_filter_data

@@ -42,7 +42,11 @@ def get_growthstockpick01_stks(top_num: int, weights: dict) -> dict:
     #      top_num=5
     gsp01 = GrowthStockPick01()
     gsp01.init_data(stocksinfos=LocalBasicDataCache.base_stock_infos, weights=weights)
-    return gsp01.get_target_stock_pool(top_num=top_num)
+    stock_pool = {}
+    for index, row in gsp01.get_target_stock_pool(top_num=top_num).iterrows():
+        symbol = row['symbol']
+        stock_pool[symbol] = row.to_dict()
+    return stock_pool
 
 
 def __getrediscli():

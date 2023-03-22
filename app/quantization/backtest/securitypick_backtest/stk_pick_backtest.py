@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 __author__ = 'carl'
 
-from datetime import datetime
 import importlib
 import os
+from datetime import datetime
 
 from dateutil.relativedelta import relativedelta
 
@@ -71,29 +71,32 @@ class SecurityPickBackTest(object):
         self.init_data_func = getattr(self.strategy_instance, self.init_data_func_name)
         self.get_target_stocks_func = getattr(self.strategy_instance, self.get_target_stocks_func_name)
 
-    def cal_shift_period_return(self):
-        """计算换仓周期中的收益"""
+    def cal_all_period_return(self):
+        """计算所有换仓周期中的收益"""
         now_m = datetime.today().month
         now_y = datetime.today().year
-        initial_date = datetime(now_y, now_m - 1, 1)
+        now_date = datetime(now_y, now_m, 1)
         start_date = datetime(now_y - self.sample_periods, 1, 1)
-        while start_date <= initial_date:
-            print("start_date:" + str(start_date.year) + str(start_date.month).zfill(2) + str(start_date.day).zfill(2))
+        while start_date < now_date:
             end_date = start_date + relativedelta(months=+self.shift_period)
-            if end_date >= initial_date:
-                end_date = initial_date
-            print("end_date:" + str(end_date.year) + str(end_date.month).zfill(2) + str(end_date.day).zfill(2))
+            if end_date >= now_date:
+                end_date = now_date
             start_date_str = str(start_date.year) + str(start_date.month).zfill(2) + str(start_date.day).zfill(2)
             end_date_str = str(end_date.year) + str(end_date.month).zfill(2) + str(end_date.day).zfill(2)
             trade_start_date, trade_end_date = self.get_period_fl_trade_date(start_date=start_date_str,
                                                                              end_date=end_date_str)
-            base_stocksinfos = BaseDataClean.get_certainday_base_stock_infos(trade_date=trade_start_date)
-            self.init_data_func(stocksinfos=base_stocksinfos, weights=self.stk_pick_strategy_weights_args)
-            stock_pool = self.get_target_stocks_func()
-            print(stock_pool)
+            print("start_date:" + start_date_str)
+            print("end_date:" + end_date_str)
+            self.cal_shift_period_return(trade_start_date=trade_start_date, trade_end_date=trade_end_date)
 
-            start_date = start_date + relativedelta(months=+self.shift_period)
+            start_date = end_date
 
+    def cal_shift_period_return(self, trade_start_date, trade_end_date):
+        """计算特定换仓周期中的收益"""
+        base_stocksinfos = BaseDataClean.get_certainday_base_stock_infos(trade_date=trade_start_date)
+        self.init_data_func(stocksinfos=base_stocksinfos, weights=self.stk_pick_strategy_weights_args)
+        stock_pool = self.get_target_stocks_func()[['ts_code']]
+        print(stock_pool)
 
     def get_period_fl_trade_date(self, start_date, end_date):
         """
