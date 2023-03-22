@@ -64,7 +64,7 @@ def cal_rolling_feature(daily_return_series: pd.Series, rf=0.02):
         "复合年增长": qs.stats.cagr(daily_return_series, rf=rf),
         "夏普比率": qs.stats.sharpe(daily_return_series, rf=rf),
         "索蒂诺": qs.stats.sortino(daily_return_series, rf=rf),
-        "omega": qs.stats.omega(pd.DataFrame(daily_return_series), rf=rf),
+        "omega": qs.stats.omega(pd.DataFrame(daily_return_series), rf=rf),  # 衡量投资组合风险回报情况的指标
         "最大回撤": qs.stats.max_drawdown(daily_return_series),
         "最大回撤期(天)": int(qs.stats.drawdown_details(feature_df['回撤'])['days'].max()),
         "年波动率": qs.stats.volatility(daily_return_series),

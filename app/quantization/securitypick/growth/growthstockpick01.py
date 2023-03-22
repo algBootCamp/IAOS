@@ -113,7 +113,8 @@ class GrowthStockPick01(StockPick):
         if self.target_filter_data is None or len(self.target_filter_data.index) == 0:
             log.info("GrowthStockPick01 has no stock_pool!")
             return None
-        self.target_filter_data = self.target_filter_data.head(top_num)
+        if top_num > 0:
+            self.target_filter_data = self.target_filter_data.head(top_num)
         self.stock_pool = {}
         for index, row in self.target_filter_data.iterrows():
             symbol = row['symbol']
