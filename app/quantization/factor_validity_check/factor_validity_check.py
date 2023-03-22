@@ -12,6 +12,7 @@ from pandas import DataFrame, Series
 from db.myredis.redis_cli import RedisClient
 from entity.singleton import Singleton
 from quotation.captures.tsdata_capturer import TuShareDataCapturer
+from util.quant_util import get_price
 
 warnings.filterwarnings("ignore")
 
@@ -252,9 +253,9 @@ class FactorValidityCheck(Singleton):
         """
         计算分组内流通市值加权的月收益率
         """
-        close1 = self.get_close(port, startdate)
+        close1 = get_price(port, startdate)
         c1_list = close1['ts_code'].to_list()
-        close2 = self.get_close(port, enddate)
+        close2 = get_price(port, enddate)
         c2_list = close2['ts_code'].to_list()
         valid_codes = list(set(c1_list).intersection(set(c2_list)))
         close1 = close1['close'].loc[valid_codes]
@@ -272,8 +273,8 @@ class FactorValidityCheck(Singleton):
         """
         计算分组内基准的月收益率
         """
-        close1 = self.get_close([self.benchmark], startdate, asset='I')
-        close2 = self.get_close([self.benchmark], enddate, asset='I')
+        close1 = get_price([self.benchmark], startdate, asset='I')
+        close2 = get_price([self.benchmark], enddate, asset='I')
         c1_list = close1['ts_code'].to_list()
         c2_list = close2['ts_code'].to_list()
         valid_codes = list(set(c1_list).intersection(set(c2_list)))
@@ -281,40 +282,6 @@ class FactorValidityCheck(Singleton):
         close2 = close2['close'].loc[valid_codes]
         benchmark_return = (close2 / close1 - 1).sum()
         return benchmark_return
-
-    def get_close(self, port, trade_date, asset='E'):
-        """
-        获取分组内收盘价
-        """
-        symbol = ","
-        close = DataFrame()
-        # 缓解压力 大于500个 分割
-        if len(port) > 500:
-            f = lambda a: map(lambda b: a[b:b + 300], range(0, len(a), 300))
-            part_ports = f(port)
-            for part_port in part_ports:
-                ts_codes = symbol.join(part_port)
-                # 当且仅当 start_date=end_date  ts_code可传多值
-                close = pd.concat(
-                    [close, self.tsdatacapture.get_pro_bar(asset=asset, ts_code=ts_codes, start_date=trade_date,
-                                                           end_date=trade_date)], axis=0)
-        elif len(port) == 1:
-            close = self.tsdatacapture.get_pro_bar(asset=asset, ts_code=port[0], start_date=trade_date,
-                                                   end_date=trade_date)
-        else:
-            ts_codes = symbol.join(port)
-            # 当且仅当 start_date=end_date  ts_code可传多值
-            close = self.tsdatacapture.get_pro_bar(asset=asset, ts_code=ts_codes, start_date=trade_date,
-                                                   end_date=trade_date)
-        # 实在没办法了 一个一个取 防止多值获取失败
-        if close is None or close.empty:
-            for ts_code in port:
-                close = pd.concat(
-                    [close, self.tsdatacapture.get_pro_bar(asset=asset, ts_code=ts_code, start_date=trade_date,
-                                                           end_date=trade_date)], axis=0)
-        close = close[['ts_code', 'close']]
-        close.index = close['ts_code']
-        return close
 
     def init_sample_months(self):
         self.sample_months = {'01': '02', '02': '03', '03': '04', '04': '05',
