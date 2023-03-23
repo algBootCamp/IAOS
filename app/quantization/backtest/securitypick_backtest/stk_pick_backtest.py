@@ -9,7 +9,7 @@ from dateutil.relativedelta import relativedelta
 
 from quotation.captures.tsdata_capturer import TuShareDataCapturer
 from quotation.cleaning.data_clean import BaseDataClean
-from util.quant_util import get_price
+from util.quant_util import get_price, get_period_fl_trade_date
 
 """
 量化选股 回测分析模块
@@ -84,14 +84,32 @@ class SecurityPickBackTest(object):
                 end_date = now_date
             start_date_str = str(start_date.year) + str(start_date.month).zfill(2) + str(start_date.day).zfill(2)
             end_date_str = str(end_date.year) + str(end_date.month).zfill(2) + str(end_date.day).zfill(2)
-            trade_start_date, trade_end_date = self.get_period_fl_trade_date(start_date=start_date_str,
-                                                                             end_date=end_date_str)
-            print("start_date:" + start_date_str)
-            print("end_date:" + end_date_str)
+            trade_start_date, trade_end_date = get_period_fl_trade_date(start_date=start_date_str,
+                                                                        end_date=end_date_str)
+            print(start_date_str, "---", end_date_str)
             # 根据流通市值加权的持仓周期收益率
-            weighted_p_return=self.cal_shift_period_return(trade_start_date=trade_start_date, trade_end_date=trade_end_date)
-
+            weighted_p_return = self.cal_shift_period_return(trade_start_date=trade_start_date,
+                                                             trade_end_date=trade_end_date)
+            benchmark_p_return = self.cal_benchmark_shift_period_return(startdate=trade_start_date,
+                                                                        enddate=trade_end_date)
+            print("weighted_p_return:  ", weighted_p_return)
+            print("benchmark_p_return: ", benchmark_p_return)
+            print("----------------------------------------")
             start_date = end_date
+
+    def cal_benchmark_shift_period_return(self, startdate, enddate):
+        """
+        计算特定换仓周期内基准的月收益率
+        """
+        close1 = get_price(ts_code_list=[self.benchmark], trade_date=startdate, asset='I')
+        close2 = get_price(ts_code_list=[self.benchmark], trade_date=enddate, asset='I')
+        c1_list = close1['ts_code'].to_list()
+        c2_list = close2['ts_code'].to_list()
+        valid_codes = list(set(c1_list).intersection(set(c2_list)))
+        close1 = close1['close'].loc[valid_codes]
+        close2 = close2['close'].loc[valid_codes]
+        benchmark_return = (close2 / close1 - 1).sum()
+        return benchmark_return
 
     def cal_shift_period_return(self, trade_start_date, trade_end_date):
         """计算特定换仓周期中的收益"""
@@ -99,7 +117,7 @@ class SecurityPickBackTest(object):
         self.init_data_func(stocksinfos=base_stocksinfos, weights=self.stk_pick_strategy_weights_args)
         target_filter_data = self.get_target_stocks_func()
         stock_pool = target_filter_data['ts_code'].to_list()
-        print(stock_pool)
+        print("stock_pool: ", stock_pool)
         # 流通市值
         cmv = target_filter_data[['ts_code', 'circ_mv']].sort_values(by='ts_code')
         cmv.index = cmv['ts_code']
@@ -117,16 +135,4 @@ class SecurityPickBackTest(object):
         weighted_period_profit = period_profit * circ_mv
         # 根据流通市值加权的持仓周期收益率
         weighted_p_return = weighted_period_profit.sum() / circ_mv.sum()
-        print(weighted_p_return)
         return weighted_p_return
-
-    def get_period_fl_trade_date(self, start_date, end_date):
-        """
-        获取start_date——end_date 之间最初最后一个交易日
-        """
-        trade_cal = self.tsdatacapture.get_trade_cal(start_date=start_date, end_date=end_date)
-        start_date = trade_cal.loc[0, "cal_date"]
-        end_date = trade_cal.tail(1)["cal_date"].to_list()[0]
-        if int(start_date) - int(end_date) > 0:
-            end_date, start_date = start_date, end_date
-        return start_date, end_date

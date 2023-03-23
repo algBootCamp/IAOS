@@ -12,7 +12,7 @@ from pandas import DataFrame, Series
 from db.myredis.redis_cli import RedisClient
 from entity.singleton import Singleton
 from quotation.captures.tsdata_capturer import TuShareDataCapturer
-from util.quant_util import get_price
+from util.quant_util import get_price, get_period_fl_trade_date
 
 warnings.filterwarnings("ignore")
 
@@ -190,7 +190,7 @@ class FactorValidityCheck(Singleton):
                 if mstart == "12":
                     end_date = y + mend + "31"
 
-                start_date, end_date = self.get_period_fl_trade_date(end_date, start_date)
+                start_date, end_date = get_period_fl_trade_date(start_date, end_date)
                 # 获取指标数据 可重写的方法 【必含字段 'ts_code', 'circ_mv', factor】
                 basics_data = self.get_factor_data(factor, start_date)
                 # 分组 并计算 分组月收益
@@ -206,15 +206,6 @@ class FactorValidityCheck(Singleton):
                     port_profit["benchmark"].append(benchmark_m_return)
         self.init_sample_months()
         return port_profit
-
-    def get_period_fl_trade_date(self, start_date, end_date):
-        """获取start_date---end_date 之间最初最后一个交易日"""
-        trade_cal = self.tsdatacapture.get_trade_cal(start_date=start_date, end_date=end_date)
-        start_date = trade_cal.loc[0, "cal_date"]
-        end_date = trade_cal.tail(1)["cal_date"].to_list()[0]
-        if int(start_date) - int(end_date) > 0:
-            end_date, start_date = start_date, end_date
-        return start_date, end_date
 
     def part_data_cal_mon_profit(self, basics_data, end_date, factor, port_profit, start_date):
         """分组 并计算 分组月收益"""
