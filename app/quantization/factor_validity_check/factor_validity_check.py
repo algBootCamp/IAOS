@@ -306,8 +306,8 @@ class FactorValidityCheck(Singleton):
                         'total_mv', 'circ_mv', 'dv_ratio', 'dv_ttm', 'changepercent', 'trade',
                         'volume', 'amount', 'eps', 'current_ratio', 'quick_ratio', 'bps',
                         'netprofit_margin', 'grossprofit_margin', 'profit_to_gr', 'op_of_gr',
-                        'roe', 'basic_eps_yoy', 'roa', 'npta', 'roic', 'roe_yearly', 'roa2_yearly',
-                        'debt_to_assets', 'op_yoy', 'ebt_yoy', 'tr_yoy', 'or_yoy', 'equity_yoy'
+                        'roe', 'basic_eps_yoy', 'roa', 'npta', 'roic', 'roe_yearly',
+                        'roa2_yearly', 'debt_to_assets', 'op_yoy', 'ebt_yoy', 'tr_yoy', 'or_yoy', 'equity_yoy'
                         ]
 
     def draw_return_picture(self):

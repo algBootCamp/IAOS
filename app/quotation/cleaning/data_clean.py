@@ -11,6 +11,7 @@ from db.myredis.redis_cli import RedisClient
 from quotation.captures.tsdata_capturer import TuShareDataCapturer
 from util.cal_util import get_data_percentile
 from util.decorator_util import retry
+from util.quant_util import get_period_fl_trade_date
 from util.time_util import get_befortoday_Ymd, get_after_today_Ymd
 
 '''
@@ -272,12 +273,9 @@ class BaseDataClean(object):
 
     @classmethod
     def get_pretrade_date(cls) -> str:
-        """获取上一个交易日"""
-        start_date = get_befortoday_Ymd(7)
+        """获取当前日期上一个交易日"""
+        start_date = get_befortoday_Ymd(15)
         end_date = get_after_today_Ymd(0)
-        trade_cal = BaseDataClean.tsdatacapture.get_trade_cal(start_date=start_date, end_date=end_date)
-        # print(trade_cal.head(3))
-        if trade_cal is not None:
-            BaseDataClean.pretrade_date = trade_cal['pretrade_date'].loc[0]
+        BaseDataClean.pretrade_date = get_period_fl_trade_date(start_date=start_date, end_date=end_date)[1]
         log.info("pretrade date is %s." % BaseDataClean.pretrade_date)
         return str(BaseDataClean.pretrade_date)
