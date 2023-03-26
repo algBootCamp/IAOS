@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 __author__ = 'carl'
 
-import datetime
 import time
 
 
