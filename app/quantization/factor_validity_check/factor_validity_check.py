@@ -12,13 +12,14 @@ from pandas import DataFrame, Series
 from db.myredis.redis_cli import RedisClient
 from entity.singleton import Singleton
 from quotation.captures.tsdata_capturer import TuShareDataCapturer
+from quotation.cleaning.data_clean import BaseDataClean
 from util.quant_util import get_price, get_period_fl_trade_date
 
 warnings.filterwarnings("ignore")
 
 """
 因子有效性校验：
-目前该模块支持 tsdatacapture.get_daily_basic 返回字段的校验;
+目前该模块支持 BaseDataClean.get_certainday_base_stock_infos 返回字段的校验;
 继承复写重写 get_factor_data 即可;
 默认取上证指数 000001.SH 为对比 基准;
 
@@ -41,6 +42,16 @@ if AR1 < ARn #因子越小，收益越大
 
 3- 在任何市场行情下，1和n两个极端组合，都以较高概率跑赢or跑输市场。
 以上三个条件，可以选出过去一段时间有较好选股能力的因子。
+
+
+评判指标：
+组合累积收益
+因子平均年化收益
+因子年化超额收益
+高收益组合跑赢概率
+低收益组合跑输概率
+正收益月占比
+因子IC
 """
 
 
@@ -65,7 +76,7 @@ class FactorValidityCheck(Singleton):
         # factors ic
         self.factors_ics = DataFrame()
         # factor ic最小相关阀值
-        self.min_corr = 0.3
+        self.min_corr = 0.5
         # 最小超额收益阀值
         self.min_bottom = -0.05
         # 最小超额收益阀值
@@ -235,7 +246,7 @@ class FactorValidityCheck(Singleton):
         获取含有因子数据的行情
         如果所需因子不在 get_daily_basic 需要重写该方法
         """
-        basics_data: DataFrame = self.tsdatacapture.get_daily_basic(trade_date=trade_date)[[
+        basics_data: DataFrame = BaseDataClean.get_certainday_base_stock_infos(trade_date=trade_date)[[
             'ts_code', 'circ_mv', factor]]
         basics_data.dropna(axis=0, how='any', subset=[factor], inplace=True)
         return basics_data
@@ -281,10 +292,23 @@ class FactorValidityCheck(Singleton):
 
     def default_factors(self):
         """默认因子集"""
-        self.factors = ['turnover_rate', 'turnover_rate_f',
-                        'volume_ratio', 'pe', 'pe_ttm', 'pb', 'ps',
-                        'ps_ttm', 'total_share', 'float_share', 'total_mv',
-                        'circ_mv', 'dv_ratio', 'dv_ttm']
+        # '地区', '行业', '市场', '上市日期', '交易所',
+        # '当日收盘价', '换手率（%）', '换手率（自由流通股）', '量比',
+        # '市盈率', '市盈率TTM', '市净率', '市销率', '市销率TTM', '总股本', '流通股本',
+        # '总市值', '流通市值', '股息率', '股息率TTM', '涨跌幅', '现价',
+        # '成交量', '成交额', '基本每股收益', '流动比率', '速动比率', '每股净资产',
+        # '销售净利率', '销售毛利率', '净利润率', '营业利润率',
+        # '净资产收益率', '总资产报酬率', '总资产净利润', '投入资本回报率', '年化净资产收益率', '基本每股收益同比增长率(%)',
+        # '年化总资产报酬率', '资产负债率', '营业利润同比增长率', '利润总额同比增长率', '营业总收入同比增长率', '营业收入同比增长率', '净资产同比增长率'
+        self.factors = ['area', 'industry', 'market', 'list_date', 'exchange',
+                        'close', 'turnover_rate', 'turnover_rate_f', 'volume_ratio',
+                        'pe', 'pe_ttm', 'pb', 'ps', 'ps_ttm', 'total_share', 'float_share',
+                        'total_mv', 'circ_mv', 'dv_ratio', 'dv_ttm', 'changepercent', 'trade',
+                        'volume', 'amount', 'eps', 'current_ratio', 'quick_ratio', 'bps',
+                        'netprofit_margin', 'grossprofit_margin', 'profit_to_gr', 'op_of_gr',
+                        'roe', 'basic_eps_yoy', 'roa', 'npta', 'roic', 'roe_yearly', 'roa2_yearly',
+                        'debt_to_assets', 'op_yoy', 'ebt_yoy', 'tr_yoy', 'or_yoy', 'equity_yoy'
+                        ]
 
     def draw_return_picture(self):
         for fac in self.factors:

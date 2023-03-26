@@ -13,6 +13,13 @@ from util.quant_util import get_price, get_period_fl_trade_date
 
 """
 量化选股 回测分析模块
+
+评判指标：
+累积收益
+年化复合收益
+年化超额收益
+跑赢基准周期占比
+正收益周期占比
 """
 
 

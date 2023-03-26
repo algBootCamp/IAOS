@@ -2,7 +2,7 @@ from quantization.factor_validity_check.factor_validity_check import FactorValid
 
 
 def test_cal_factors_ic():
-    fvc = FactorValidityCheck(factors=['pe', 'ps'], sample_periods=3)
+    fvc = FactorValidityCheck(factors=['roe', 'basic_eps_yoy', 'pe_ttm'], sample_periods=6)
     fvc.get_validity_factors()
     fvc.draw_return_picture()
 
@@ -21,3 +21,5 @@ def test_draw():
     plt.show()
 
 
+def test_draw_return_picture():
+    assert False
