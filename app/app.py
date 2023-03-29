@@ -58,8 +58,9 @@ class IAOSFlask(Flask):
         self._iaos_init()
 
     def _iaos_cfg(self):
+        server_info = global_cfg.get_server_info()
         self.config['DEBUG'] = False
-        self.config['SECRET_KEY'] = 'ABCDEFG'
+        self.config['SECRET_KEY'] = server_info['secret_key']
         # 防止中文转换成ASCII编码
         self.config['JSON_AS_ASCII'] = False
         # 跨域的解决方案

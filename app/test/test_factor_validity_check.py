@@ -2,7 +2,14 @@ from quantization.factor_validity_check.factor_validity_check import FactorValid
 
 
 def test_cal_factors_ic():
-    fvc = FactorValidityCheck(factors=['roe', 'basic_eps_yoy', 'pe_ttm'], sample_periods=6)
+    fvc = FactorValidityCheck(factors=['turnover_rate', 'turnover_rate_f', 'volume_ratio',
+                                       'pe', 'pe_ttm', 'pb', 'ps', 'ps_ttm', 'total_share', 'float_share',
+                                       'total_mv', 'circ_mv', 'dv_ratio', 'dv_ttm', 'changepercent', 'trade',
+                                       'volume', 'amount', 'eps', 'current_ratio', 'quick_ratio', 'bps',
+                                       'netprofit_margin', 'grossprofit_margin', 'profit_to_gr', 'op_of_gr',
+                                       'roe', 'basic_eps_yoy', 'roa', 'npta', 'roic', 'roe_yearly',
+                                       'roa2_yearly', 'debt_to_assets', 'op_yoy', 'ebt_yoy', 'tr_yoy', 'or_yoy',
+                                       'equity_yoy'], sample_periods=7)
     fvc.get_validity_factors()
     fvc.draw_return_picture()
 
