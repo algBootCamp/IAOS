@@ -115,12 +115,12 @@ def cal_arbr(stock, n=120):
     计算AR、BR指标
     """
     code = get_code()[stock]
-    df = get_data(code, n)[['ts_code', 'open', 'high', 'low', 'close']]
+    df = get_data(code, n)[['ts_code', 'pre_close', 'open', 'high', 'low', 'close']]
     df['HO'] = df.high - df.open
     df['OL'] = df.open - df.low
-    df['HCY'] = df.high - df.close.shift(1)
+    df['HCY'] = df.high - df.pre_close
     # pre_close=df.close.shift(1)
-    df['CYL'] = df.close.shift(1) - df.low
+    df['CYL'] = df.pre_close - df.low
     # 计算AR、BR指标
     df['AR'] = ta.SUM(df.HO, timeperiod=26) / ta.SUM(df.OL, timeperiod=26) * 100
     df['BR'] = ta.SUM(df.HCY, timeperiod=26) / ta.SUM(df.CYL, timeperiod=26) * 100
@@ -130,13 +130,26 @@ def cal_arbr(stock, n=120):
 # 对价格和ARBR进行可视化
 def plot_arbr(stock, n=120):
     df = cal_arbr(stock, n)
-
+    t = df.index.tolist()
+    closes = df['close'].tolist()
+    ars = df['AR'].tolist()
+    brs = df['BR'].tolist()
     plt.rcParams['font.sans-serif'] = ['Microsoft YaHei']  # 用来正常显示中文标签
     plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
-    plt.title(stock + '价格走势&ArBr', fontsize=12)
-    plt.plot(df['close'], label='close')
-    plt.plot(df['AR'], label='AR')
-    plt.plot(df['BR'], label='BR')
+    fig = plt.figure(num=1, figsize=(6, 4))
+    ax = fig.add_subplot(111)
+    ax.plot(t, closes, "r-", label="close")
+    ax.plot(t, ars, "g-", label="AR")
+    ax.plot(t, brs, "b-", label="BR")
+    ax.set_title(stock + '价格走势&ArBr', fontsize=12, backgroundcolor='#3c7f99', fontweight='bold', color='white',
+                 verticalalignment="baseline")  # 标题（表头）
+    # loc: 可取"best", 1或者"upper right", 2或"upper left", 3或"lower left", 4或"lower right", 代表放不同位置
+    # fontsize： int或float或
+    # {‘xx - small’, ‘x - small’, ‘small’, ‘medium’, ‘large’, ‘x - large’, ‘xx - large’}，字体大小
+    # shadow: 是否为图例边框添加阴影
+    # labelspacing: 图例中条目之间的距离
+    # handlelength: 图例句柄的长度
+    ax.legend(loc=4, labelspacing=0.5, handlelength=0.5, fontsize=12, shadow=False)
 
     plt.show()
 
