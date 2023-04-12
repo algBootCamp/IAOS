@@ -26,7 +26,6 @@ HA开盘价ha_open =(上一交易日HA开盘价+上一交易日HA收盘价)/2
 HA最高价ha_high =MAX（最高价high,HA开盘价ha_open,HA收盘价ha_close)
 HA最低价ha_low  =MIN（最低价low,HA开盘价ha_open,HA收盘价ha_close)
 
-
 pyecharts to see：https://pyecharts.org/#/zh-cn/intro
 """
 
@@ -129,6 +128,7 @@ def kline_plot(name, ktype=0):
             itemstyle_opts=opts.ItemStyleOpts(color="#ec0000", color0="#00da3c"),
         )
             .set_global_opts(
+            title_opts=opts.TitleOpts(title="K线周期图表", pos_left="0"),
             legend_opts=opts.LegendOpts(
                 is_show=False, pos_bottom=10, pos_left="center"
             ),
