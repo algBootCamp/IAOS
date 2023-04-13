@@ -244,7 +244,7 @@ class FactorValidityCheck(Singleton):
     def get_factor_data(self, factor, trade_date):
         """
         获取含有因子数据的行情
-        如果所需因子不在 get_daily_basic 需要重写该方法
+        如果所需因子不在 get_certainday_base_stock_infos 需要重写该方法
         """
         basics_data: DataFrame = BaseDataClean.get_certainday_base_stock_infos(trade_date=trade_date)[[
             'ts_code', 'circ_mv', factor]]
