@@ -82,3 +82,118 @@ insert into factor_type (factor_type_id, factor_type, memo)
 values ('SD_F', '自定义因子', '自定义因子类型因子');
 commit;
 -- 2、候选因子表 candidate_factors
+-- 1、估值因子
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('pe', '市盈率', 'V_F', '估值因子', '市盈率');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('pe_ttm', '市盈率TTM', 'V_F', '估值因子', '市盈率TTM');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('pb', '市净率', 'V_F', '估值因子', '市净率');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('ps', '市销率', 'V_F', '估值因子', '市销率');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('ps_ttm', '市销率TTM', 'V_F', '估值因子', '市销率TTM');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('dv_ratio', '股息率', 'V_F', '估值因子', '股息率');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('eps', '基本每股收益', 'V_F', '估值因子', '基本每股收益');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('bps', '每股净资产', 'V_F', '估值因子', '每股净资产');
+commit;
+
+-- 2、成长因子
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('roe', '净资产收益率', 'G_F', '成长因子', '净资产收益率');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('roe_yearly', '年化净资产收益率', 'G_F', '成长因子', '年化净资产收益率');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('npta', '总资产净利润', 'G_F', '成长因子', '总资产净利润');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('roa', '总资产报酬率', 'G_F', '成长因子', '总资产报酬率(资产收益率,资产回报率,=税后净利润/总资产)');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('roa_yearly', '年化总资产净利率', 'G_F', '成长因子', '年化总资产净利率');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('roa2_yearly', '年化总资产报酬率', 'G_F', '成长因子', '年化总资产报酬率');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('roic', '投入资本回报率', 'G_F', '成长因子', '投入资本回报率');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('basic_eps_yoy', '基本每股收益(eps)同比增长率', 'G_F', '成长因子', '基本每股收益(eps)同比增长率(%)');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('op_yoy', '营业利润同比增长率', 'G_F', '成长因子', '营业利润同比增长率');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('ebt_yoy', '利润总额同比增长率', 'G_F', '成长因子', '利润总额同比增长率');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('tr_yoy', '营业总收入同比增长率', 'G_F', '成长因子', '营业总收入同比增长率');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('or_yoy', '营业收入同比增长率', 'G_F', '成长因子', '营业收入同比增长率');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('equity_yoy', '净资产同比增长率', 'G_F', '成长因子', '净资产同比增长率');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('netprofit_margin', '销售净利率', 'G_F', '成长因子', '销售净利率');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('grossprofit_margin', '销售毛利率', 'G_F', '成长因子', '销售毛利率');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('profit_to_gr', '净利润率', 'G_F', '成长因子', '净利润率(净利润/营业总收入)');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('op_of_gr', '营业利润率', 'G_F', '成长因子', '营业利润率(营业利润/营业总收入)');
+commit;
+
+-- 3、资本结构因子
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('debt_to_assets', '资产负债率', 'CS_F', '资本结构因子', '资产负债率');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('total_mv', '总市值', 'CS_F', '资本结构因子', '总市值');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('circ_mv', '流通市值', 'CS_F', '资本结构因子', '流通市值');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('volume', '成交量', 'CS_F', '资本结构因子', '成交量');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('amount', '成交额', 'CS_F', '资本结构因子', '成交额');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('current_ratio', '流动比率', 'CS_F', '资本结构因子', '流动比率=流动资产合计/流动负债合计');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('quick_ratio', '速动比率', 'CS_F', '资本结构因子', '速动比率=速动资产/流动负债');
+commit;
+
+-- 4、技术面因子
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('turnover_rate', '换手率', 'T_F', '技术面因子', '换手率（%）');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('turnover_rate_f', '换手率（自由流通股）', 'T_F', '技术面因子', '换手率（自由流通股）');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('volume_ratio', '量比', 'T_F', '技术面因子', '量比');
+commit;
+insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
+VALUES ('changepercent', '股息率TTM', 'T_F', '技术面因子', '涨跌幅');
+commit;
