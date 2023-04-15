@@ -52,6 +52,7 @@ prettytable==3.6.0
 py-mini-racer==0.6.0
 pycparser==2.21
 pyecharts==2.0.2
+PyMySQL==1.0.3
 pyparsing==3.0.9
 pypinyin==0.48.0
 pypng==0.20220715.0

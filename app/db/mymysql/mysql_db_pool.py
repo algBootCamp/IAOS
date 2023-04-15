@@ -3,6 +3,8 @@ __author__ = 'carl'
 
 import logging
 
+# noinspection PyPackageRequirements
+import pymysql
 from dbutils.pooled_db import PooledDB
 from conf.globalcfg import GlobalCfg
 from entity.singleton import Singleton
@@ -30,25 +32,28 @@ class MyConnectionPool(Singleton):
         if self.__pool is None:
             try:
                 self.__pool = PooledDB(
-                    creator=self.db_info["creator"],
+                    # creator=self.db_info["creator"],
+                    creator=pymysql,
                     mincached=int(self.db_info["mincached"]),
                     maxcached=int(self.db_info["maxcached"]),
                     maxshared=int(self.db_info["maxshared"]),
                     maxconnections=int(self.db_info["maxconnections"]),
                     blocking=bool(self.db_info["blocking"]),
                     maxusage=int(self.db_info["maxusage"]),
-                    setsession=self.db_info["setsession"],
+                    setsession=['SET AUTOCOMMIT = 1'],
                     host=self.db_info["host"],
                     port=int(self.db_info["port"]),
                     user=self.db_info["user"],
                     passwd=self.db_info["passwd"],
                     db=self.db_info["db"],
-                    use_unicode=False,
+                    use_unicode=True,
                     charset=self.db_info["charset"],
                 )
             except Exception as e:
                 log_err.error("create mysql ConnectionPool failed.%s" % e)
-                return None
+        if self.__pool is None:
+            log_err.error("create mysql ConnectionPool failed.")
+            raise Exception("create mysql ConnectionPool failed.")
         log.info("create mysql ConnectionPool success.")
         return self.__pool.connection()
 

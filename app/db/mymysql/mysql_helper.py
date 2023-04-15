@@ -162,7 +162,14 @@ class MySqLHelper(object):
 
 
 # if __name__ == '__main__':
-#     db = MySqLHelper()
+    # db = MySqLHelper()
+    # sql = r'select * from candidate_factors'
+    # res = db.selectall(sql=sql)
+    # factors=[item[1] for item in res]
+    # factors_name = [item[2] for item in res]
+    # print(factors)
+    # print(factors_name)
+
 
     # TODO 查询单条
     # sql1 = 'select * from userinfo where name=%s'

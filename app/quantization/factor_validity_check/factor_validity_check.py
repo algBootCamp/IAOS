@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 from pandas import DataFrame, Series
 
+from db.mymysql.mysql_helper import MySqLHelper
 from db.myredis.redis_cli import RedisClient
 from entity.singleton import Singleton
 from quotation.captures.tsdata_capturer import TuShareDataCapturer
@@ -60,6 +61,7 @@ class FactorValidityCheck(Singleton):
 
     def __init__(self, benchmark: str = "000001.SH", factors: list = None, sample_periods: int = 7):
         self.rediscli = RedisClient().get_redis_cli()
+        self.db = MySqLHelper()
         self.tsdatacapture: TuShareDataCapturer = TuShareDataCapturer()
         self.benchmark = benchmark
         self.factors = factors
@@ -292,23 +294,18 @@ class FactorValidityCheck(Singleton):
 
     def default_factors(self):
         """默认因子集"""
-        # '地区', '行业', '市场', '上市日期', '交易所',
-        # '当日收盘价', '换手率（%）', '换手率（自由流通股）', '量比',
-        # '市盈率', '市盈率TTM', '市净率', '市销率', '市销率TTM', '总股本', '流通股本',
-        # '总市值', '流通市值', '股息率', '股息率TTM', '涨跌幅', '现价',
-        # '成交量', '成交额', '基本每股收益', '流动比率', '速动比率', '每股净资产',
-        # '销售净利率', '销售毛利率', '净利润率', '营业利润率',
-        # '净资产收益率', '总资产报酬率', '总资产净利润', '投入资本回报率', '年化净资产收益率', '基本每股收益同比增长率(%)',
-        # '年化总资产报酬率', '资产负债率', '营业利润同比增长率', '利润总额同比增长率', '营业总收入同比增长率', '营业收入同比增长率', '净资产同比增长率'
-        self.factors = ['area', 'industry', 'market', 'list_date', 'exchange',
-                        'close', 'turnover_rate', 'turnover_rate_f', 'volume_ratio',
-                        'pe', 'pe_ttm', 'pb', 'ps', 'ps_ttm', 'total_share', 'float_share',
-                        'total_mv', 'circ_mv', 'dv_ratio', 'dv_ttm', 'changepercent', 'trade',
-                        'volume', 'amount', 'eps', 'current_ratio', 'quick_ratio', 'bps',
-                        'netprofit_margin', 'grossprofit_margin', 'profit_to_gr', 'op_of_gr',
-                        'roe', 'basic_eps_yoy', 'roa', 'npta', 'roic', 'roe_yearly',
-                        'roa2_yearly', 'debt_to_assets', 'op_yoy', 'ebt_yoy', 'tr_yoy', 'or_yoy', 'equity_yoy'
-                        ]
+        # ['pe', 'pe_ttm', 'pb', 'ps', 'ps_ttm', 'dv_ratio', 'eps', 'bps', 'roe', 'roe_yearly', 'npta', 'roa',
+        #  'roa_yearly', 'roa2_yearly', 'roic', 'basic_eps_yoy', 'op_yoy', 'ebt_yoy', 'tr_yoy', 'or_yoy', 'equity_yoy',
+        #  'netprofit_margin', 'grossprofit_margin', 'profit_to_gr', 'op_of_gr', 'debt_to_assets', 'total_mv', 'circ_mv',
+        #  'volume', 'amount', 'current_ratio', 'quick_ratio', 'turnover_rate', 'turnover_rate_f', 'volume_ratio',
+        #  'changepercent']
+        # ['市盈率', '市盈率TTM', '市净率', '市销率', '市销率TTM', '股息率', '基本每股收益', '每股净资产', '净资产收益率', '年化净资产收益率', '总资产净利润', '总资产报酬率',
+        #  '年化总资产净利率', '年化总资产报酬率', '投入资本回报率', '基本每股收益(eps)同比增长率', '营业利润同比增长率', '利润总额同比增长率', '营业总收入同比增长率', '营业收入同比增长率',
+        #  '净资产同比增长率', '销售净利率', '销售毛利率', '净利润率', '营业利润率', '资产负债率', '总市值', '流通市值', '成交量', '成交额', '流动比率', '速动比率', '换手率',
+        #  '换手率（自由流通股）', '量比', '涨跌幅']
+        sql = r'select * from candidate_factors'
+        res = self.db.selectall(sql=sql)
+        self.factors = [item[1] for item in res]
 
     def draw_return_picture(self):
         for fac in self.factors:
