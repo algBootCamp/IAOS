@@ -195,5 +195,5 @@ insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_ty
 VALUES ('volume_ratio', '量比', 'T_F', '技术面因子', '量比');
 commit;
 insert into candidate_factors (factor_id, factor_name, factor_type_id, factor_type, memo)
-VALUES ('changepercent', '股息率TTM', 'T_F', '技术面因子', '涨跌幅');
+VALUES ('changepercent', '涨跌幅', 'T_F', '技术面因子', '涨跌幅');
 commit;
