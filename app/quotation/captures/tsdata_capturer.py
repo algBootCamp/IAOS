@@ -154,13 +154,34 @@ class TuShareDataCapturer(object):
         return df
 
     @retry(max_retry=3, time_interval=5)
+    def get_adj_factor(self, ts_code: str = '', trade_date: str = None, start_date: str = None,
+                       end_date: str = None):
+        """
+        输入参数
+        名称	类型	必选	描述
+        ts_code	str	N	股票代码
+        trade_date	str	N	交易日期(YYYYMMDD，下同)
+        start_date	str	N	开始日期
+        end_date	str	N	结束日期
+        注：日期都填YYYYMMDD格式，比如20181010
+
+        输出参数
+        名称	类型	描述
+        ts_code	str	股票代码
+        trade_date	str	交易日期
+        adj_factor	float	复权因子
+        """
+        df = self.pro.adj_factor(ts_code=ts_code, trade_date=trade_date, start_date=start_date, end_date=end_date)
+        return df
+
+    @retry(max_retry=3, time_interval=5)
     def get_pro_bar(self, ts_code='', start_date='', end_date='', freq='D', asset='E',
                     adj=None, ma=[], factors=None, adjfactor=False,
                     offset=None, limit=None, contract_type='') -> DataFrame:
         """
         通用行情接口 根据入参，可以获取 未复权、前、后复权行情(只针对股票,即asset=E)
         入参说明：
-        ts_code	    str	    Y	证券代码，不支持多值输入，多值输入获取结果会有重复记录 [经过验证，如果start_date=end_date，不会有重复值]
+        ts_code	    str	    Y	证券代码，不支持多值输入，多值输入获取结果会有重复记录
         api	        str	    N	pro版api对象，如果初始化了set_token，此参数可以不需要
         start_date	str	    N	开始日期 (日线格式：YYYYMMDD，提取分钟数据请用2019-09-01 09:00:00这种格式)
         end_date	str	    N	结束日期 (日线格式：YYYYMMDD)

@@ -2,6 +2,7 @@
 __author__ = 'carl'
 
 import logging
+import time
 
 import numpy as np
 import pandas as pd
@@ -52,6 +53,9 @@ log_err = logging.getLogger("log_err")
 
 # noinspection PyMethodMayBeStatic,SpellCheckingInspection,PyIncorrectDocstring,DuplicatedCode
 class BaseDataClean(object):
+    # 交易日所在年上一年年报数据
+    year_fina_indictor = None
+    pre_final_period = None
     # 上一个交易日
     pretrade_date: str = None
     # 股票池 [上市]
@@ -123,7 +127,7 @@ class BaseDataClean(object):
                       '年化总资产报酬率', '资产负债率', '营业利润同比增长率', '利润总额同比增长率', '营业总收入同比增长率', '营业收入同比增长率', '净资产同比增长率', '更新标识'
                       ]
         # rename_dict = dict(zip(need_col, rename_col))
-        trade_date = BaseDataClean.get_pretrade_date()
+        trade_date = BaseDataClean.pretrade_date
         try:
             base_stock_infos = BaseDataClean.get_certainday_base_stock_infos(trade_date=trade_date)
             log.info("last day(%s) base_stock_infos init success." % trade_date)
@@ -214,51 +218,60 @@ class BaseDataClean(object):
     def get_certainday_base_stock_infos(cls, trade_date: str) -> DataFrame:
         """获取指定日期的base_stock_infos"""
         try:
-            cls.init_stocks_pool()
-            # 市场、行业数据
+            if BaseDataClean.pretrade_date is None:
+                cls.get_pretrade_date()
+            if BaseDataClean.stocks_pool is None:
+                cls.init_stocks_pool()
+                # 市场、行业数据
+                # ts_codes_str = ",".join(BaseDataClean.stocks_pool['ts_code'].tolist())
+                exchange_data = BaseDataClean.stocks_pool['ts_code'].tolist()
+                exchange_data = [x.split('.')[1] for x in exchange_data]
+                exchange_data = pd.Series(exchange_data)
+                BaseDataClean.stocks_pool.insert(loc=len(BaseDataClean.stocks_pool.columns), column='exchange',
+                                                 value=exchange_data)
+
             ex_indu_data = BaseDataClean.stocks_pool
-            # add exchange  df.insert(loc=len(df.columns), column='player', value=player_vals)
-            exchange_data = ex_indu_data['ts_code'].tolist()
-            exchange_data = [x.split('.')[1] for x in exchange_data]
-            exchange_data = pd.Series(exchange_data)
-            # print(exchange_data)
-            ex_indu_data.insert(loc=len(ex_indu_data.columns), column='exchange', value=exchange_data)
             # 全部股票每日重要的基本面指标
-            # 'close', 'turnover_rate','turnover_rate_f', 'volume_ratio',
-            b_col = ['ts_code', 'close', 'turnover_rate', 'turnover_rate_f', 'volume_ratio', 'pe', 'pe_ttm', 'pb', 'ps',
+            b_col = ['ts_code', 'close', 'turnover_rate', 'turnover_rate_f',
+                     'volume_ratio', 'pe', 'pe_ttm', 'pb', 'ps',
                      'ps_ttm', 'total_share', 'float_share', 'total_mv',
                      'circ_mv', 'dv_ratio', 'dv_ttm']
+            t0 = time.time()
             basics_data: DataFrame = BaseDataClean.tsdatacapture.get_daily_basic(
                 trade_date=trade_date)[b_col]
             base_stock_infos = pd.merge(left=ex_indu_data, right=basics_data, on='ts_code')
-
-            # 股价1、涨跌幅1、成交额1  振幅、主力资金、委比、涨跌停
-            # 近一个日交易日所有股票的交易数据
-            # 代码,涨跌幅,现价,成交量,换手率,成交额,
+            t1 = time.time()
+            t10 = t1 - t0
+            print(t10)
+            # 指定交易日所有股票的交易数据
+            # 代码,涨跌幅,现价,成交量,成交额
             t_col = ['ts_code', 'pct_chg', 'close', 'vol', 'amount']
-            trade_data: DataFrame = BaseDataClean.tsdatacapture.get_pro_bar(asset='E', start_date=trade_date,
-                                                                            end_date=trade_date)[t_col]
+            trade_data: DataFrame = BaseDataClean.tsdatacapture.get_daily(ts_code='', trade_date=trade_date)
+            trade_data = trade_data[t_col]
+            # TODO pct_chg 是未复权的 前复权	当日收盘价 × 当日复权因子 / 最新复权因子	qfq
+            #  后复权	当日收盘价 × 当日复权因子	hfq
+            # df_adj_factors0 = BaseDataClean.tsdatacapture.get_adj_factor(ts_code=ts_codes_str, trade_date=trade_date)
+            # df_adj_factors1 = BaseDataClean.tsdatacapture.get_adj_factor(ts_code=ts_codes_str, trade_date=BaseDataClean.pretrade_date)
+            # df_adj_factors0 = pd.merge(left=df_adj_factors0, right=df_adj_factors1, on='ts_code')
             # trade_data: DataFrame = BaseDataClean.tsdatacapture.get_today_all()[t_col]
             trade_data.rename(columns={'pct_chg': 'changepercent',
                                        'close': 'trade',
                                        'vol': 'volume'}, inplace=True)
             base_stock_infos = pd.merge(left=base_stock_infos, right=trade_data,
                                         on='ts_code')
+            t2 = time.time()
+            t21 = t2 - t1
+            print(t21)
             # 取上一年年报财务数据
             final_period = str(int(trade_date[0:4]) - 1) + "1231"
-            # TS股票代码 公告日期 报告期 基本每股收益  流动比率  速动比率  每股净资产 销售净利率  销售毛利率
-            # 营业净利率  净利润率  净资产收益率 总资产报酬率 总资产净利润  投入资本回报率
-            # 年化净资产收益率 年化总资产报酬率 资产负债率 营业利润同比增长率(%) 利润总额同比增长率(%)
-            # 营业总收入同比增长率(%) 营业收入同比增长率(%) 净资产同比增长率 更新标识
-            f_col = ['ts_code', 'ann_date', 'end_date', 'eps', 'current_ratio', 'quick_ratio', 'bps',
-                     'netprofit_margin', 'grossprofit_margin', 'profit_to_gr', 'op_of_gr', 'roe', 'basic_eps_yoy',
-                     'roa', 'npta', 'roic', 'roe_yearly', 'roa2_yearly', 'debt_to_assets', 'op_yoy',
-                     'ebt_yoy', 'tr_yoy', 'or_yoy', 'equity_yoy', 'update_flag']
-            fina_indicator: DataFrame = BaseDataClean.tsdatacapture.get_fina_indicator(period=final_period)
+            f_col, fina_indicator = cls.get_year_fina_indictor(final_period)
             if fina_indicator is not None:
                 fina_indicator = fina_indicator[f_col]
                 fina_indicator.drop_duplicates(subset=['ts_code'], keep='first', inplace=True)
                 base_stock_infos = pd.merge(left=base_stock_infos, right=fina_indicator, on='ts_code')
+            t3 = time.time()
+            t32 = t3 - t2
+            print(t32)
             # '总市值', '流通市值'[万元--->亿元] '总股本', '流通股本'[万股--->亿股]
             if base_stock_infos is not None:
                 base_stock_infos['total_share'] = base_stock_infos['total_share'] * BaseDataClean.billion
@@ -270,6 +283,25 @@ class BaseDataClean(object):
         except Exception as e:
             log_err.error("trade_date %s base_stock_infos capture Failed! %s" % (trade_date, e))
             raise e
+
+    @classmethod
+    def get_year_fina_indictor(cls, final_period):
+        """
+        交易日所在年上一年年报数据
+        """
+        # TS股票代码 公告日期 报告期 基本每股收益  流动比率  速动比率  每股净资产 销售净利率  销售毛利率
+        # 营业净利率  净利润率  净资产收益率 总资产报酬率 总资产净利润  投入资本回报率
+        # 年化净资产收益率 年化总资产报酬率 资产负债率 营业利润同比增长率(%) 利润总额同比增长率(%)
+        # 营业总收入同比增长率(%) 营业收入同比增长率(%) 净资产同比增长率 更新标识
+        f_col = ['ts_code', 'ann_date', 'end_date', 'eps', 'current_ratio', 'quick_ratio', 'bps',
+                 'netprofit_margin', 'grossprofit_margin', 'profit_to_gr', 'op_of_gr', 'roe', 'basic_eps_yoy',
+                 'roa', 'npta', 'roic', 'roe_yearly', 'roa2_yearly', 'debt_to_assets', 'op_yoy',
+                 'ebt_yoy', 'tr_yoy', 'or_yoy', 'equity_yoy', 'update_flag']
+        if final_period != cls.pre_final_period:
+            cls.pre_final_period = final_period
+            fina_indicator: DataFrame = BaseDataClean.tsdatacapture.get_fina_indicator(period=final_period)
+            cls.year_fina_indictor = fina_indicator
+        return f_col, cls.year_fina_indictor
 
     @classmethod
     def get_pretrade_date(cls) -> str:

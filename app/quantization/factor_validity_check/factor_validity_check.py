@@ -104,25 +104,78 @@ class FactorValidityCheck(Singleton):
         # 符合 检验有效性的量化标准 的因子
         self.effective_factors = None
 
-    def get_validity_factors(self):
+    def get_validity_all_factors(self):
         """
         获取 符合 检验有效性的量化标准 的因子
         """
         if not self.effect_test_df:
-            self.check_factor_validity()
-        self.effective_factors = self.effect_test_df.copy(deep=True)
-        for fac in self.factors:
-            fac_ic = self.effect_test_df.loc['ic', fac]
-            if abs(fac_ic) < self.min_corr:
-                self.effective_factors.drop(columns=[fac], axis=1, inplace=True)
-        # print(self.effective_factors)
-        return self.effective_factors
+            self.check_all_factor_validity()
 
-    def check_factor_validity(self):
+    def check_factor_validity(self, fac):
         """检验有效性的量化标准"""
-        if self.monthly_return.empty:
-            self.gather_monthly_return()
+        # 获取特定因子指定周期内月收益
+        self.gather_monthly_return(fac)
+        # 计算特定因子评判指标
+        self.effect_test[fac] = {}
+        monthly = self.monthly_return[[fac]]
+        # 计算因子平均年化收益
+        # to see https://zhuanlan.zhihu.com/p/390849319
+        # 复利的本息计算公式是：F=P（1+i)^n P=本金，i=利率，n=期限
+        fac_total_return = (monthly + 1).T.cumprod().iloc[-1, :] - 1
+        self.total_return[fac] = fac_total_return
+        # 各个组合平均年化收益
+        fac_annual_return = (self.total_return[fac] + 1) ** (1. / (len(monthly) / 12)) - 1
+        self.annual_return[fac] = fac_annual_return
+        # 各个组合超额收益 【因子annual_return - 基准annual_return】
+        fac_excess_return = self.annual_return[fac] - self.annual_return[fac][-1]
+        self.excess_return[fac] = fac_excess_return
+        # 判断因子有效性
+        # 1.年化收益与因子的相关性IC
+        fac_ic = self.annual_return[fac][0:5].corr(
+            Series([1, 2, 3, 4, 5], index=self.annual_return[fac][0:5].index))
+        self.effect_test[fac]["ic"] = fac_ic
+
+        # 2.高收益组合跑赢概率  port_1因子<port_5因子
+        # 因子小，收益小，port_1是输家组合，port_5是赢家组合
+        if self.total_return[fac][0] < self.total_return[fac][-2]:
+            loss_excess = monthly.iloc[0, :] - monthly.iloc[-1, :]
+            self.loss_prob[fac] = loss_excess[loss_excess < 0].count() / float(len(loss_excess))
+            win_excess = monthly.iloc[-2, :] - monthly.iloc[-1, :]
+            self.win_prob[fac] = win_excess[win_excess > 0].count() / float(len(win_excess))
+            # 赢家组合跑赢概率和输家组合跑输概率
+            self.effect_test[fac]["prob"] = [self.win_prob[fac], self.loss_prob[fac]]
+            # 超额收益
+            self.effect_test[fac]["excess"] = [self.excess_return[fac][-2] * 100, self.excess_return[fac][0] * 100]
+            l_annual_return = fac_annual_return["port_1"]
+            w_annual_return = fac_annual_return["port_5"]
+            l_total_return = fac_total_return["port_1"]
+            w_total_return = fac_total_return["port_5"]
+        # 因子小，收益大，port_1是赢家组合，port_5是输家组合
+        else:
+            # port_5-benchmark
+            loss_excess = monthly.iloc[-2, :] - monthly.iloc[-1, :]
+            self.loss_prob[fac] = loss_excess[loss_excess < 0].count() / float(len(loss_excess))
+            win_excess = monthly.iloc[0, :] - monthly.iloc[-1, :]
+            self.win_prob[fac] = win_excess[win_excess > 0].count() / float(len(win_excess))
+            # 赢家组合跑赢概率和输家组合跑输概率
+            self.effect_test[fac]["prob"] = [self.win_prob[fac], self.loss_prob[fac]]
+            # 超额收益
+            self.effect_test[fac]["excess"] = [self.excess_return[fac][0] * 100, self.excess_return[fac][-2] * 100]
+            l_annual_return = fac_annual_return["port_5"]
+            w_annual_return = fac_annual_return["port_1"]
+            l_total_return = fac_total_return["port_5"]
+            w_total_return = fac_total_return["port_1"]
+        self.effect_test_df = (DataFrame(self.effect_test))
+        self.effective_factors = self.effect_test_df.copy(deep=True)
+
+        self.save_fac_valid_info(fac, fac_annual_return, fac_ic, fac_total_return, l_annual_return, l_total_return,
+                                 w_annual_return, w_total_return)
+
+    def check_all_factor_validity(self):
+        """检验有效性的量化标准"""
         for fac in self.factors:
+            # 获取特定因子指定周期内月收益
+            self.gather_monthly_return(fac)
             self.effect_test[fac] = {}
             monthly = self.monthly_return[[fac]]
             # 计算因子平均年化收益
@@ -162,21 +215,20 @@ class FactorValidityCheck(Singleton):
                 self.effect_test[fac]["excess"] = [self.excess_return[fac][0] * 100, self.excess_return[fac][-2] * 100]
         self.effect_test_df = (DataFrame(self.effect_test))
 
-    def gather_monthly_return(self):
+    def gather_monthly_return(self, factor):
         """
         集合 monthly_return
         """
         flag = 0
-        for factor in self.factors:
-            factor_port_profit = self.cal_factor_ports_monthly_return(factor=factor)
-            fac_port_profit = DataFrame(factor_port_profit).T
-            columns = pd.MultiIndex.from_product([[factor], fac_port_profit.columns])
-            fac_port_profit.columns = columns
-            if flag == 0:
-                self.monthly_return = fac_port_profit
-            else:
-                self.monthly_return = self.monthly_return.join(fac_port_profit)
-            flag += 1
+        factor_port_profit = self.cal_factor_ports_monthly_return(factor=factor)
+        fac_port_profit = DataFrame(factor_port_profit).T
+        columns = pd.MultiIndex.from_product([[factor], fac_port_profit.columns])
+        fac_port_profit.columns = columns
+        if flag == 0:
+            self.monthly_return = fac_port_profit
+        else:
+            self.monthly_return = self.monthly_return.join(fac_port_profit)
+        flag += 1
         del flag
 
     def cal_factor_ports_monthly_return(self, factor="pe_ttm"):
@@ -197,6 +249,7 @@ class FactorValidityCheck(Singleton):
                     if m == 12:
                         self.sample_months[str(m).zfill(2)] = str(m).zfill(2)
             for mstart, mend in self.sample_months.items():
+                start = time.time()
                 mon_num += 1
                 start_date = y + mstart + "01"
                 end_date = y + mend + "01"
@@ -217,6 +270,9 @@ class FactorValidityCheck(Singleton):
                     port_profit["benchmark"] = prof_list
                 else:
                     port_profit["benchmark"].append(benchmark_m_return)
+                end = time.time()
+                use_time = end - start
+                print('month data 运行时间为: %s Seconds' % (use_time))
         self.init_sample_months()
         return port_profit
 
@@ -248,9 +304,13 @@ class FactorValidityCheck(Singleton):
         获取含有因子数据的行情
         如果所需因子不在 get_certainday_base_stock_infos 需要重写该方法
         """
+        # start = time.time()
         basics_data: DataFrame = BaseDataClean.get_certainday_base_stock_infos(trade_date=trade_date)[[
             'ts_code', 'circ_mv', factor]]
         basics_data.dropna(axis=0, how='any', subset=[factor], inplace=True)
+        # end = time.time()
+        # use_time=end - start
+        # print('get_factor_data 运行时间为: %s Seconds' % (use_time))
         return basics_data
 
     def cal_port_monthly_return(self, port, startdate, enddate, CMV):
@@ -286,6 +346,58 @@ class FactorValidityCheck(Singleton):
         close2 = close2['close'].loc[valid_codes]
         benchmark_return = (close2 / close1 - 1).sum()
         return benchmark_return
+
+    def save_fac_valid_info(self, fac, fac_annual_return, fac_ic, fac_total_return, l_annual_return, l_total_return,
+                            w_annual_return, w_total_return):
+        """
+        保存因子有效性信息
+        """
+        sql1 = r'select * from candidate_factors where factor_id=%s'
+        args = fac
+        res = self.db.selectone(sql=sql1, param=args)
+        factor_id = res[1]
+        factor_name = res[2]
+        factor_type_id = res[3]
+        factor_type = res[4]
+        benchmark = self.benchmark
+        benchmark_name = ''
+        benchmark_total_return = fac_total_return["benchmark"]
+        benchmark_annual_return = fac_annual_return["benchmark"]
+        win_total_return = w_total_return
+        win_annual_return = w_annual_return
+        # effect_test["excess"]记录 赢家组合超额收益，输家组合超额收益
+        # effect_test["prob"]记录 赢家组合跑赢概率和输家组合跑输概率;【>0.5,>0.4】合格(因实际情况，跑输概率暂时不考虑)
+        win_excess_return = self.effect_test[fac]["excess"][0]
+        loss_total_return = l_total_return
+        loss_annual_return = l_annual_return
+        loss_excess_return = self.effect_test[fac]["excess"][1]
+        win_prob = self.win_prob[fac]
+        loss_prob = self.loss_prob[fac]
+        factor_ic = fac_ic
+        # 1-有效 0-无效
+        is_valid = 1
+        if abs(fac_ic) < self.min_corr:
+            is_valid = 0
+        sample_periods = self.sample_periods
+        memo = ''
+        sql2 = r'select * from factor_validity_info where factor_id=%s'
+        args = fac
+        res = self.db.selectone(sql=sql2, param=args)
+        if res is not None:
+            sql3 = r'delete from factor_validity_info WHERE factor_id=%s'
+            args = fac
+            res = self.db.delete(sql3, args)
+        sql4 = r"""insert into factor_validity_info
+               (factor_id,factor_name,factor_type_id,factor_type,benchmark,
+               benchmark_name,benchmark_total_return,benchmark_annual_return,win_total_return,
+               win_annual_return,win_excess_return,loss_total_return,loss_annual_return,
+               loss_excess_return,win_prob,loss_prob,factor_ic,is_valid,sample_periods,memo) 
+               values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
+        res = self.db.insertone(sql4, (factor_id, factor_name, factor_type_id, factor_type, benchmark,
+                                       benchmark_name, benchmark_total_return, benchmark_annual_return,
+                                       win_total_return, win_annual_return, win_excess_return, loss_total_return,
+                                       loss_annual_return, loss_excess_return, win_prob, loss_prob, factor_ic,
+                                       is_valid, sample_periods, memo))
 
     def init_sample_months(self):
         self.sample_months = {'01': '02', '02': '03', '03': '04', '04': '05',

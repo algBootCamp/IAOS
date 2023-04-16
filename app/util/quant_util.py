@@ -1,23 +1,28 @@
 # -*- coding: utf-8 -*-
 __author__ = 'carl'
 
+import time
+
 import pandas as pd
 from pandas import DataFrame
 
 from quotation.captures.tsdata_capturer import TuShareDataCapturer
 
 
-def get_price(ts_code_list, trade_date, asset='E', adj='hfq'):
+def _get_price_(ts_code_list, trade_date, asset='E', adj='hfq'):
     """
     获取证券列表内收盘价
     计算区间涨幅、累积涨幅用后复权
+    前复权	当日收盘价 × 当日复权因子 / 最新复权因子	qfq
+    后复权	当日收盘价 × 当日复权因子	hfq
     """
+    start = time.time()
     tsdatacapture: TuShareDataCapturer = TuShareDataCapturer()
     symbol = ","
     close = DataFrame()
     # 缓解压力 大于500个 分割
-    if len(ts_code_list) > 500:
-        f = lambda a: map(lambda b: a[b:b + 300], range(0, len(a), 300))
+    if len(ts_code_list) > 600:
+        f = lambda a: map(lambda b: a[b:b + 600], range(0, len(a), 600))
         part_ports = f(ts_code_list)
         for part_port in part_ports:
             ts_codes = symbol.join(part_port)
@@ -36,12 +41,42 @@ def get_price(ts_code_list, trade_date, asset='E', adj='hfq'):
     # 实在没办法了 一个一个取 防止多值获取失败
     if close is None or close.empty:
         for ts_code in ts_code_list:
-            new_price = tsdatacapture.get_pro_bar(asset=asset, adj=adj,ts_code=ts_code, start_date=trade_date,
+            new_price = tsdatacapture.get_pro_bar(asset=asset, adj=adj, ts_code=ts_code, start_date=trade_date,
                                                   end_date=trade_date)
             close = pd.concat([close, new_price], axis=0)
     close = close[['ts_code', 'close']].sort_values(by='ts_code')
     close.index = close['ts_code']
+    end = time.time()
+    use_time = end - start
+    print('get_factor_data 运行时间为: %s Seconds' % (use_time))
     return close
+
+
+def get_price(ts_code_list, trade_date, asset='E', adj='hfq'):
+    """
+    获取证券列表内收盘价
+    计算区间涨幅、累积涨幅用后复权
+    前复权	当日收盘价 × 当日复权因子 / 最新复权因子	qfq
+    后复权	当日收盘价 × 当日复权因子	hfq
+    """
+    # start = time.time()
+    tsdatacapture: TuShareDataCapturer = TuShareDataCapturer()
+    if asset == 'I':
+        closes = tsdatacapture.get_pro_bar(asset=asset, adj=adj, ts_code=ts_code_list[0], start_date=trade_date,
+                                           end_date=trade_date)
+    else:
+        symbol = ","
+        ts_codes = symbol.join(ts_code_list)
+        df_adj_factors = tsdatacapture.get_adj_factor(ts_code=ts_codes, trade_date=trade_date)
+        closes = tsdatacapture.get_daily(ts_code=ts_codes, trade_date=trade_date)
+        closes = pd.merge(left=closes, right=df_adj_factors, on='ts_code')
+        closes['close'] = closes['close'] * closes['adj_factor']
+    closes = closes[['ts_code', 'close']].sort_values(by='ts_code')
+    closes.index = closes['ts_code']
+    # end = time.time()
+    # use_time = end - start
+    # print('get_factor_data 运行时间为: %s Seconds' % (use_time))
+    return closes
 
 
 # noinspection DuplicatedCode
