@@ -174,46 +174,7 @@ class FactorValidityCheck(Singleton):
     def check_all_factor_validity(self):
         """检验有效性的量化标准"""
         for fac in self.factors:
-            # 获取特定因子指定周期内月收益
-            self.gather_monthly_return(fac)
-            self.effect_test[fac] = {}
-            monthly = self.monthly_return[[fac]]
-            # 计算因子平均年化收益
-            # to see https://zhuanlan.zhihu.com/p/390849319
-            # 复利的本息计算公式是：F=P（1+i)^n P=本金，i=利率，n=期限
-            self.total_return[fac] = (monthly + 1).T.cumprod().iloc[-1, :] - 1
-            # 各个组合平均年化收益
-            self.annual_return[fac] = (self.total_return[fac] + 1) ** (1. / (len(monthly) / 12)) - 1
-            # 各个组合超额收益 【因子annual_return - 基准annual_return】
-            self.excess_return[fac] = self.annual_return[fac] - self.annual_return[fac][-1]
-            # 判断因子有效性
-            # 1.年化收益与因子的相关性IC
-            self.effect_test[fac]["ic"] = self.annual_return[fac][0:5].corr(
-                Series([1, 2, 3, 4, 5], index=self.annual_return[fac][0:5].index))
-
-            # 2.高收益组合跑赢概率
-            # 因子小，收益小，port_1是输家组合，port_5是赢家组合
-            if self.total_return[fac][0] < self.total_return[fac][-2]:
-                loss_excess = monthly.iloc[0, :] - monthly.iloc[-1, :]
-                self.loss_prob[fac] = loss_excess[loss_excess < 0].count() / float(len(loss_excess))
-                win_excess = monthly.iloc[-2, :] - monthly.iloc[-1, :]
-                self.win_prob[fac] = win_excess[win_excess > 0].count() / float(len(win_excess))
-                # 赢家组合跑赢概率和输家组合跑输概率
-                self.effect_test[fac]["prob"] = [self.win_prob[fac], self.loss_prob[fac]]
-                # 超额收益
-                self.effect_test[fac]["excess"] = [self.excess_return[fac][-2] * 100, self.excess_return[fac][0] * 100]
-            # 因子小，收益大，port_1是赢家组合，port_5是输家组合
-            else:
-                # port_5-benchmark
-                loss_excess = monthly.iloc[-2, :] - monthly.iloc[-1, :]
-                self.loss_prob[fac] = loss_excess[loss_excess < 0].count() / float(len(loss_excess))
-                win_excess = monthly.iloc[0, :] - monthly.iloc[-1, :]
-                self.win_prob[fac] = win_excess[win_excess > 0].count() / float(len(win_excess))
-                # 赢家组合跑赢概率和输家组合跑输概率
-                self.effect_test[fac]["prob"] = [self.win_prob[fac], self.loss_prob[fac]]
-                # 超额收益
-                self.effect_test[fac]["excess"] = [self.excess_return[fac][0] * 100, self.excess_return[fac][-2] * 100]
-        self.effect_test_df = (DataFrame(self.effect_test))
+            self.check_factor_validity(fac=fac)
 
     def gather_monthly_return(self, factor):
         """
