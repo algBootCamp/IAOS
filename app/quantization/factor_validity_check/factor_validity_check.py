@@ -64,6 +64,12 @@ class FactorValidityCheck(Singleton):
         self.db = MySqLHelper()
         self.tsdatacapture: TuShareDataCapturer = TuShareDataCapturer()
         self.benchmark = benchmark
+        self.benchmark_map = {'000001.SH': '上证综指', '399001.SZ': '深证成指',
+                              '000300.SH': '沪深300', '399006.SZ': '创业板指',
+                              '000016.SH': '上证50', '000905.SH': '中证500',
+                              '399005.SZ': '中小板指', '000010.SH': '上证180'}
+        if self.benchmark not in self.benchmark_map.keys():
+            self.benchmark=list(self.benchmark_map.keys())[0]
         self.factors = factors
         self.sample_periods = sample_periods
         if not self.factors:
@@ -121,10 +127,12 @@ class FactorValidityCheck(Singleton):
         # 计算因子平均年化收益
         # to see https://zhuanlan.zhihu.com/p/390849319
         # 复利的本息计算公式是：F=P（1+i)^n P=本金，i=利率，n=期限
+        # 总收益率
         fac_total_return = (monthly + 1).T.cumprod().iloc[-1, :] - 1
         self.total_return[fac] = fac_total_return
         # 各个组合平均年化收益
-        fac_annual_return = (self.total_return[fac] + 1) ** (1. / (len(monthly) / 12)) - 1
+        # fac_annual_return = (self.total_return[fac] + 1) ** (1. / (len(monthly) / 12)) - 1
+        fac_annual_return = (self.total_return[fac] + 1) ** (1. / (monthly.columns.size / 12)) - 1
         self.annual_return[fac] = fac_annual_return
         # 各个组合超额收益 【因子annual_return - 基准annual_return】
         fac_excess_return = self.annual_return[fac] - self.annual_return[fac][-1]
@@ -145,7 +153,7 @@ class FactorValidityCheck(Singleton):
             # 赢家组合跑赢概率和输家组合跑输概率
             self.effect_test[fac]["prob"] = [self.win_prob[fac], self.loss_prob[fac]]
             # 超额收益
-            self.effect_test[fac]["excess"] = [self.excess_return[fac][-2] * 100, self.excess_return[fac][0] * 100]
+            self.effect_test[fac]["excess"] = [self.excess_return[fac][-2], self.excess_return[fac][0]]
             l_annual_return = fac_annual_return["port_1"]
             w_annual_return = fac_annual_return["port_5"]
             l_total_return = fac_total_return["port_1"]
@@ -160,7 +168,7 @@ class FactorValidityCheck(Singleton):
             # 赢家组合跑赢概率和输家组合跑输概率
             self.effect_test[fac]["prob"] = [self.win_prob[fac], self.loss_prob[fac]]
             # 超额收益
-            self.effect_test[fac]["excess"] = [self.excess_return[fac][0] * 100, self.excess_return[fac][-2] * 100]
+            self.effect_test[fac]["excess"] = [self.excess_return[fac][0], self.excess_return[fac][-2]]
             l_annual_return = fac_annual_return["port_5"]
             w_annual_return = fac_annual_return["port_1"]
             l_total_return = fac_total_return["port_5"]
@@ -321,7 +329,7 @@ class FactorValidityCheck(Singleton):
         factor_type_id = res[3]
         factor_type = res[4]
         benchmark = self.benchmark
-        benchmark_name = ''
+        benchmark_name = self.benchmark_map[self.benchmark]
         benchmark_total_return = fac_total_return["benchmark"]
         benchmark_annual_return = fac_annual_return["benchmark"]
         win_total_return = w_total_return

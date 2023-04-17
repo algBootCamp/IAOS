@@ -3,6 +3,7 @@ from quantization.factor_validity_check.factor_validity_check import FactorValid
 
 def test_cal_factors_ic():
     fvc = FactorValidityCheck(sample_periods=7)
+    # fvc.check_factor_validity(fac='pe')
     fvc.get_validity_all_factors()
     fvc.draw_return_picture()
 

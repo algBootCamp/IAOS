@@ -22,7 +22,7 @@ class Test(TestCase):
         df2 = pd.DataFrame(data2, columns=['close'], dtype=float)
 
         print(df2)
-
+        xxxxxx=df2.columns.size
         data3 = [[100], [1200], [1100]]
         df3 = pd.DataFrame(data3, columns=['cmv'], dtype=float)
         x1 = df2['close'] / df1['close'] - 1
