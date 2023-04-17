@@ -69,7 +69,7 @@ class FactorValidityCheck(Singleton):
                               '000016.SH': '上证50', '000905.SH': '中证500',
                               '399005.SZ': '中小板指', '000010.SH': '上证180'}
         if self.benchmark not in self.benchmark_map.keys():
-            self.benchmark=list(self.benchmark_map.keys())[0]
+            self.benchmark = list(self.benchmark_map.keys())[0]
         self.factors = factors
         self.sample_periods = sample_periods
         if not self.factors:
@@ -178,6 +178,7 @@ class FactorValidityCheck(Singleton):
 
         self.save_fac_valid_info(fac, fac_annual_return, fac_ic, fac_total_return, l_annual_return, l_total_return,
                                  w_annual_return, w_total_return)
+        self.draw_return_picture(fac)
 
     def check_all_factor_validity(self):
         """检验有效性的量化标准"""
@@ -388,26 +389,25 @@ class FactorValidityCheck(Singleton):
         res = self.db.selectall(sql=sql)
         self.factors = [item[1] for item in res]
 
-    def draw_return_picture(self):
-        for fac in self.factors:
-            df = self.monthly_return[[fac]]
-            plt.rcParams['font.sans-serif'] = ['Microsoft YaHei']  # 用来正常显示中文标签
-            plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
-            plt.xticks(size=12, rotation=50)  # 设置字体大小和字体倾斜度
-            fig = plt.figure()
-            fig.suptitle('Figure: return for %s' % fac)
-            # (df.T + 1).cumprod().iloc[:, 0].plot(label='port1')
-            plt.plot(np.array((df.T + 1).cumprod().iloc[:, 0]), label='port1')
-            plt.plot(np.array((df.T + 1).cumprod().iloc[:, 1]), label='port2')
-            # (df.T + 1).cumprod().iloc[:, 1].plot(label='port2')
-            # (df.T + 1).cumprod().iloc[:, 2].plot(label='port3')
-            plt.plot(np.array((df.T + 1).cumprod().iloc[:, 2]), label='port3')
-            plt.plot(np.array((df.T + 1).cumprod().iloc[:, 3]), label='port4')
-            # (df.T + 1).cumprod().iloc[:, 3].plot(label='port4')
-            # (df.T + 1).cumprod().iloc[:, 4].plot(label='port5')
-            # (df.T + 1).cumprod().iloc[:, 5].plot(label='benchmark')
-            plt.plot(np.array((df.T + 1).cumprod().iloc[:, 4]), label='port5')
-            plt.plot(np.array((df.T + 1).cumprod().iloc[:, 5]), label='benchmark')
-            plt.xlabel('return of factor %s' % fac)
-            plt.legend(loc=0)
-            plt.show()
+    def draw_return_picture(self, fac):
+        df = self.monthly_return[[fac]]
+        plt.rcParams['font.sans-serif'] = ['Microsoft YaHei']  # 用来正常显示中文标签
+        plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
+        plt.xticks(size=12, rotation=50)  # 设置字体大小和字体倾斜度
+        fig = plt.figure()
+        fig.suptitle('Figure: return for %s' % fac)
+        # (df.T + 1).cumprod().iloc[:, 0].plot(label='port1')
+        plt.plot(np.array((df.T + 1).cumprod().iloc[:, 0]), label='port1')
+        plt.plot(np.array((df.T + 1).cumprod().iloc[:, 1]), label='port2')
+        # (df.T + 1).cumprod().iloc[:, 1].plot(label='port2')
+        # (df.T + 1).cumprod().iloc[:, 2].plot(label='port3')
+        plt.plot(np.array((df.T + 1).cumprod().iloc[:, 2]), label='port3')
+        plt.plot(np.array((df.T + 1).cumprod().iloc[:, 3]), label='port4')
+        # (df.T + 1).cumprod().iloc[:, 3].plot(label='port4')
+        # (df.T + 1).cumprod().iloc[:, 4].plot(label='port5')
+        # (df.T + 1).cumprod().iloc[:, 5].plot(label='benchmark')
+        plt.plot(np.array((df.T + 1).cumprod().iloc[:, 4]), label='port5')
+        plt.plot(np.array((df.T + 1).cumprod().iloc[:, 5]), label='benchmark')
+        plt.xlabel('return of factor %s' % fac)
+        plt.legend(loc=0)
+        plt.show()
