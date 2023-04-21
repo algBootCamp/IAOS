@@ -117,9 +117,10 @@ class MySqLHelper(object):
         :param param: 必须是元组或列表[(),()]或（（），（））
         :return:
         """
-        cursor, conn, count = self.db.getconn()
+        count = 0
+        cursor, conn = self.db.getconn()
         try:
-            cursor.executemany(sql, param)
+            count = cursor.executemany(sql, param)
             conn.commit()
             return count
         except Exception as e:
@@ -160,45 +161,44 @@ class MySqLHelper(object):
         finally:
             self.close(cursor, conn)
 
-
 # if __name__ == '__main__':
-    # db = MySqLHelper()
-    # sql = r'select * from candidate_factors'
-    # res = db.selectall(sql=sql)
-    # factors=[item[1] for item in res]
-    # factors_name = [item[2] for item in res]
-    # print(factors)
-    # print(factors_name)
+# db = MySqLHelper()
+# sql = r'select * from candidate_factors'
+# res = db.selectall(sql=sql)
+# factors=[item[1] for item in res]
+# factors_name = [item[2] for item in res]
+# print(factors)
+# print(factors_name)
 
 
-    # TODO 查询单条
-    # sql1 = 'select * from userinfo where name=%s'
-    # args = 'python'
-    # ret = db.selectone(sql=sql1, param=args)
-    # print(ret)  # (None, b'python', b'123456', b'0')
+# TODO 查询单条
+# sql1 = 'select * from userinfo where name=%s'
+# args = 'python'
+# ret = db.selectone(sql=sql1, param=args)
+# print(ret)  # (None, b'python', b'123456', b'0')
 
-    # TODO 增加单条
-    # sql2 = 'insert into hotel_urls(cname,hname,cid,hid,url) values(%s,%s,%s,%s,%s)'
-    # ret = db.insertone(sql2, ('1', '2', '1', '2', '2'))
-    # print(ret)
+# TODO 增加单条
+# sql2 = 'insert into hotel_urls(cname,hname,cid,hid,url) values(%s,%s,%s,%s,%s)'
+# ret = db.insertone(sql2, ('1', '2', '1', '2', '2'))
+# print(ret)
 
-    # TODO 增加多条
-    # sql3 = 'insert into userinfo (name,password) VALUES (%s,%s)'
-    # li = li = [
-    #     ('分省', '123'),
-    #     ('到达','456')
-    # ]
-    # ret = db.insertmany(sql3,li)
-    # print(ret)
+# TODO 增加多条
+# sql3 = 'insert into userinfo (name,password) VALUES (%s,%s)'
+# li = li = [
+#     ('分省', '123'),
+#     ('到达','456')
+# ]
+# ret = db.insertmany(sql3,li)
+# print(ret)
 
-    # TODO 删除
-    # sql4 = 'delete from  userinfo WHERE name=%s'
-    # args = 'xxxx'
-    # ret = db.delete(sql4, args)
-    # print(ret)
+# TODO 删除
+# sql4 = 'delete from  userinfo WHERE name=%s'
+# args = 'xxxx'
+# ret = db.delete(sql4, args)
+# print(ret)
 
-    # TODO 更新
-    # sql5 = r'update userinfo set password=%s WHERE name LIKE %s'
-    # args = ('993333993', '%old%')
-    # ret = db.update(sql5, args)
-    # print(ret)
+# TODO 更新
+# sql5 = r'update userinfo set password=%s WHERE name LIKE %s'
+# args = ('993333993', '%old%')
+# ret = db.update(sql5, args)
+# print(ret)

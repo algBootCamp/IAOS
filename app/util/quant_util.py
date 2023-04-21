@@ -7,6 +7,7 @@ import pandas as pd
 from pandas import DataFrame
 
 from quotation.captures.tsdata_capturer import TuShareDataCapturer
+from util.decorator_util import retry
 
 
 def _get_price_(ts_code_list, trade_date, asset='E', adj='hfq'):
@@ -52,6 +53,7 @@ def _get_price_(ts_code_list, trade_date, asset='E', adj='hfq'):
     return close
 
 
+@retry(max_retry=3, time_interval=9)
 def get_price(ts_code_list, trade_date, asset='E', adj='hfq'):
     """
     获取证券列表内收盘价
@@ -61,21 +63,36 @@ def get_price(ts_code_list, trade_date, asset='E', adj='hfq'):
     """
     # start = time.time()
     tsdatacapture: TuShareDataCapturer = TuShareDataCapturer()
-    if asset == 'I':
-        closes = tsdatacapture.get_pro_bar(asset=asset, adj=adj, ts_code=ts_code_list[0], start_date=trade_date,
-                                           end_date=trade_date)
-    else:
-        symbol = ","
-        ts_codes = symbol.join(ts_code_list)
-        df_adj_factors = tsdatacapture.get_adj_factor(ts_code=ts_codes, trade_date=trade_date)
-        closes = tsdatacapture.get_daily(ts_code=ts_codes, trade_date=trade_date)
-        closes = pd.merge(left=closes, right=df_adj_factors, on='ts_code')
-        closes['close'] = closes['close'] * closes['adj_factor']
-    closes = closes[['ts_code', 'close']].sort_values(by='ts_code')
-    closes.index = closes['ts_code']
-    # end = time.time()
-    # use_time = end - start
-    # print('get_factor_data 运行时间为: %s Seconds' % (use_time))
+    try:
+        if asset == 'I':
+            closes = tsdatacapture.get_pro_bar(asset=asset, adj=adj, ts_code=ts_code_list[0], start_date=trade_date,
+                                               end_date=trade_date)
+        else:
+            symbol = ","
+            df_adj_factors = DataFrame()
+            closes = DataFrame()
+            if len(ts_code_list) > 500:
+                f = lambda a: map(lambda b: a[b:b + 500], range(0, len(a), 500))
+                part_ports = f(ts_code_list)
+                for part_port in part_ports:
+                    ts_codes = symbol.join(part_port)
+                    new_df_adj_factors = tsdatacapture.get_adj_factor(ts_code=ts_codes, trade_date=trade_date)
+                    new_price = tsdatacapture.get_daily(ts_code=ts_codes, trade_date=trade_date)
+                    closes = pd.concat([closes, new_price], axis=0)
+                    df_adj_factors = pd.concat([df_adj_factors, new_df_adj_factors], axis=0)
+            else:
+                ts_codes = symbol.join(ts_code_list)
+                df_adj_factors = tsdatacapture.get_adj_factor(ts_code=ts_codes, trade_date=trade_date)
+                closes = tsdatacapture.get_daily(ts_code=ts_codes, trade_date=trade_date)
+            closes = pd.merge(left=closes, right=df_adj_factors, on='ts_code')
+            closes.dropna(axis=0, how='any', subset=['ts_code', 'adj_factor'], inplace=True)
+            closes['close'] = closes['close'] * closes['adj_factor']
+            closes.rename(columns={'trade_date_x': 'trade_date'}, inplace=True)
+        closes['asset'] = asset
+        closes = closes[['ts_code', 'close', 'asset','trade_date']].sort_values(by='ts_code')
+        closes.index = closes['ts_code']
+    except Exception as e:
+        raise e
     return closes
 
 
@@ -87,6 +104,8 @@ def get_period_fl_trade_date(start_date, end_date):
     tsdatacapture: TuShareDataCapturer = TuShareDataCapturer()
     trade_cal = tsdatacapture.get_trade_cal(start_date=start_date, end_date=end_date).sort_values(
         by='cal_date')
+    if trade_cal is None or trade_cal.empty:
+        return None,None
     start_date_s = trade_cal.loc[0, "cal_date"]
     end_date_s = trade_cal.loc[len(trade_cal.index) - 1, "cal_date"]
     if int(start_date_s) - int(end_date_s) > 0:

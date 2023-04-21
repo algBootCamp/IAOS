@@ -9,7 +9,7 @@ use iaos;
 drop table if exists factor_type;
 drop table if exists candidate_factors;
 drop table if exists factor_validity_info;
-
+drop table if exists sample_stk_price;
 -- 因子类型枚举表
 create table if not exists factor_type
 (
@@ -70,6 +70,17 @@ create table if not exists factor_validity_info
 ) engine = innodb
   default charset = utf8;
 
+-- 样本股票价格信息表
+create table if not exists sample_stk_price
+(
+    ts_code    varchar(10) not null comment 'stkId',
+    trade_date varchar(10) not null comment '交易日期',
+    close      double      not null comment '收盘价',
+    circ_mv    double      not null default 0.0 comment '流通市值',
+    asset      varchar(2)  not null default 'E' comment '标的类型 E股票 I沪深指数 C数字货币 FT期货 FD基金 O期权 CB可转债',
+    PRIMARY KEY (ts_code, trade_date)
+) engine = innodb
+  default charset = utf8;
 
 -- 初始化部分数据表的值
 -- 1、因子类型枚举表 factor_type

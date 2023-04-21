@@ -153,6 +153,7 @@ class TuShareDataCapturer(object):
         df = self.pro.monthly(ts_code=ts_code, trade_date=trade_date, start_date=start_date, end_date=end_date)
         return df
 
+    # @retry_for_none
     @retry(max_retry=3, time_interval=5)
     def get_adj_factor(self, ts_code: str = '', trade_date: str = None, start_date: str = None,
                        end_date: str = None):

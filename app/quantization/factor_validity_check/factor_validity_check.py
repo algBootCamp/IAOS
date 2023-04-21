@@ -3,10 +3,12 @@ __author__ = 'carl'
 
 import time
 import warnings
+from datetime import datetime
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from dateutil.relativedelta import relativedelta
 from pandas import DataFrame, Series
 
 from db.mymysql.mysql_helper import MySqLHelper
@@ -53,6 +55,12 @@ if AR1 < ARn #因子越小，收益越大
 低收益组合跑输概率
 正收益月占比
 因子IC
+
+change log：
+2023.04.20:
+由于多次从数据源拉取数据极不稳定，且数据量不大 且有重复数据 所以
+因子基础数据放在本地内存 样本股票收盘价格放在数据库
+
 """
 
 
@@ -70,17 +78,25 @@ class FactorValidityCheck(Singleton):
                               '399005.SZ': '中小板指', '000010.SH': '上证180'}
         if self.benchmark not in self.benchmark_map.keys():
             self.benchmark = list(self.benchmark_map.keys())[0]
+        # 基准收益[只计算一次]
+        self.benchmark_port_profit = None
         self.factors = factors
         self.sample_periods = sample_periods
         if not self.factors:
             self.default_factors()
-        now_time = time.localtime(time.time())
-        self.this_year = now_time.tm_year
-        self.this_month = now_time.tm_mon
-        self.sample_years = list(reversed([str(self.this_year - i) for i in range(self.sample_periods + 1)]))
-        self.sample_months = None
-        self.init_sample_months()
-
+        # now_time = time.localtime(time.time())
+        # self.this_year = now_time.tm_year
+        # self.this_month = now_time.tm_mon
+        # self.sample_years = list(reversed([str(self.this_year - i) for i in range(self.sample_periods + 1)]))
+        # self.sample_months = None
+        # self.init_sample_months()
+        self.sample_trade_dates = []
+        # {
+        #     'trade_date':DataFrame,
+        #     'trade_date': DataFrame,
+        #     ...
+        # }
+        self.factor_basics_data = None
         # factors ic
         self.factors_ics = DataFrame()
         # factor ic最小相关阀值
@@ -110,10 +126,57 @@ class FactorValidityCheck(Singleton):
         # 符合 检验有效性的量化标准 的因子
         self.effective_factors = None
 
-    def get_validity_all_factors(self):
+    def init_data(self, refresh):
+        """
+        初始化和落地所需数据
+        1- factor_data放内存
+        2- 样本股票收盘价格放在数据库
+        """
+        if refresh:
+            sql = r'delete from sample_stk_price'
+            self.db.delete(sql)
+        self.factor_basics_data = {}
+        now_m = datetime.today().month
+        now_y = datetime.today().year
+        now_d = datetime.today().day
+        now_date = datetime(now_y, now_m, now_d)
+        start_date = datetime(now_y - self.sample_periods, 1, 1)
+        while start_date + relativedelta(days=+1) <= now_date:
+            end_date = start_date + relativedelta(months=+1)
+            if end_date >= now_date:
+                end_date = now_date
+            start_date_str = str(start_date.year) + str(start_date.month).zfill(2) + str(start_date.day).zfill(2)
+            end_date_str = str(end_date.year) + str(end_date.month).zfill(2) + str(end_date.day).zfill(2)
+            trade_start_date, trade_end_date = get_period_fl_trade_date(start_date=start_date_str,
+                                                                        end_date=end_date_str)
+            if trade_start_date is None:
+                break
+            # 初始化因子行情数据
+            basics_data = self.load_factor_data(trade_start_date)
+            self.factor_basics_data[trade_start_date] = basics_data
+            self.sample_trade_dates.append(trade_start_date)
+            if refresh:
+                # 样本股票收盘价格放在数据库
+                ts_codes = list(basics_data['ts_code'])
+                # 'ts_code', 'close' 'trade_date' 'asset'
+                close1 = get_price(ts_code_list=ts_codes, trade_date=trade_start_date)
+                close2 = get_price(ts_code_list=[self.benchmark], trade_date=trade_start_date, asset='I')
+                for close_data in close1, close2:
+                    keys = close_data.keys()
+                    values = [tuple(val) for val in close_data.values.tolist()]
+                    key_sql = ','.join(keys)
+                    value_sql = ','.join(['%s'] * close_data.shape[1])
+                    # 插入语句
+                    insert_data_str = """ insert into %s (%s) values (%s)""" % ('sample_stk_price', key_sql, value_sql)
+                    self.db.insertmany(sql=insert_data_str, param=values)
+            start_date = end_date
+
+    def get_validity_all_factors(self, refresh=False):
         """
         获取 符合 检验有效性的量化标准 的因子
         """
+        # 初始化和落地所需数据
+        self.init_data(refresh=refresh)
         if not self.effect_test_df:
             self.check_all_factor_validity()
 
@@ -191,6 +254,9 @@ class FactorValidityCheck(Singleton):
         """
         flag = 0
         factor_port_profit = self.cal_factor_ports_monthly_return(factor=factor)
+        if len(factor_port_profit) < 6 and self.benchmark_port_profit is not None:
+            factor_port_profit['benchmark'] = self.benchmark_port_profit
+        self.benchmark_port_profit = factor_port_profit['benchmark']
         fac_port_profit = DataFrame(factor_port_profit).T
         columns = pd.MultiIndex.from_product([[factor], fac_port_profit.columns])
         fac_port_profit.columns = columns
@@ -206,33 +272,15 @@ class FactorValidityCheck(Singleton):
         计算某一个因子在各个分组的月收益率
         """
         port_profit = {}
-        mon_num = 0
-        for y in self.sample_years:
-            if y == str(self.this_year):
-                if self.this_month == 1:
-                    break
-                # 记得一个因子计算完之后 重新赋值
-                self.sample_months.clear()
-                mend = self.this_month - 1
-                for m in range(1, mend + 1):
-                    self.sample_months[str(m).zfill(2)] = str(m + 1).zfill(2)
-                    if m == 12:
-                        self.sample_months[str(m).zfill(2)] = str(m).zfill(2)
-            for mstart, mend in self.sample_months.items():
-                start = time.time()
-                mon_num += 1
-                start_date = y + mstart + "01"
-                end_date = y + mend + "01"
-                if mstart == "12":
-                    end_date = y + mend + "31"
-
-                start_date, end_date = get_period_fl_trade_date(start_date, end_date)
-                # 获取指标数据 可重写的方法 【必含字段 'ts_code', 'circ_mv', factor】
-                basics_data = self.get_factor_data(factor, start_date)
-                # 分组 并计算 分组月收益
-                self.part_data_cal_mon_profit(basics_data, end_date, factor, port_profit, start_date)
-
-                # 计算基准月收益
+        for i in range(len(self.sample_trade_dates)):
+            if i + 1 >= len(self.sample_trade_dates):
+                break
+            start_date = self.sample_trade_dates[i]
+            end_date = self.sample_trade_dates[i + 1]
+            basics_data = self.get_factor_data(factor, start_date)
+            self.part_data_cal_mon_profit(basics_data, end_date, factor, port_profit, start_date)
+            # 计算基准月收益[只计算一次]
+            if self.benchmark_port_profit is None:
                 benchmark_m_return = self.cal_benchmark_monthly_return(start_date, end_date)
                 if not port_profit.keys().__contains__("benchmark"):
                     prof_list = []
@@ -240,10 +288,44 @@ class FactorValidityCheck(Singleton):
                     port_profit["benchmark"] = prof_list
                 else:
                     port_profit["benchmark"].append(benchmark_m_return)
-                end = time.time()
-                use_time = end - start
-                print('month data 运行时间为: %s Seconds' % (use_time))
-        self.init_sample_months()
+
+        # for y in self.sample_years:
+        #     if y == str(self.this_year):
+        #         if self.this_month == 1:
+        #             break
+        #         # 记得一个因子计算完之后 重新赋值
+        #         self.sample_months.clear()
+        #         mend = self.this_month - 1
+        #         for m in range(1, mend + 1):
+        #             self.sample_months[str(m).zfill(2)] = str(m + 1).zfill(2)
+        #             if m == 12:
+        #                 self.sample_months[str(m).zfill(2)] = str(m).zfill(2)
+        #     for mstart, mend in self.sample_months.items():
+        #         start = time.time()
+        #         mon_num += 1
+        #         start_date = y + mstart + "01"
+        #         end_date = y + mend + "01"
+        #         if mstart == "12":
+        #             end_date = y + mend + "31"
+        #
+        #         start_date, end_date = get_period_fl_trade_date(start_date, end_date)
+        #         # 获取指标数据 可重写的方法 【必含字段 'ts_code', 'circ_mv', factor】
+        #         basics_data = self.get_factor_data(factor, start_date)
+        #         # 分组 并计算 分组月收益
+        #         self.part_data_cal_mon_profit(basics_data, end_date, factor, port_profit, start_date)
+        #         # 计算基准月收益[只计算一次]
+        #         if self.benchmark_port_profit is None:
+        #             benchmark_m_return = self.cal_benchmark_monthly_return(start_date, end_date)
+        #             if not port_profit.keys().__contains__("benchmark"):
+        #                 prof_list = []
+        #                 prof_list.append(benchmark_m_return)
+        #                 port_profit["benchmark"] = prof_list
+        #             else:
+        #                 port_profit["benchmark"].append(benchmark_m_return)
+        #         end = time.time()
+        #         use_time = end - start
+        #         print('month data 运行时间为: %s Seconds' % (use_time))
+        # self.init_sample_months()
         return port_profit
 
     def part_data_cal_mon_profit(self, basics_data, end_date, factor, port_profit, start_date):
@@ -269,27 +351,53 @@ class FactorValidityCheck(Singleton):
             else:
                 port_profit["port_" + str(port_index)].append(weighted_m_return)
 
-    def get_factor_data(self, factor, trade_date):
+    def load_factor_data(self, trade_date):
         """
         获取含有因子数据的行情
         如果所需因子不在 get_certainday_base_stock_infos 需要重写该方法
         """
-        # start = time.time()
-        basics_data: DataFrame = BaseDataClean.get_certainday_base_stock_infos(trade_date=trade_date)[[
-            'ts_code', 'circ_mv', factor]]
-        basics_data.dropna(axis=0, how='any', subset=[factor], inplace=True)
+        need_cols = self.factors.copy()
+        need_cols.insert(0, 'ts_code')
+        basics_data: DataFrame = BaseDataClean.get_certainday_base_stock_infos(trade_date=trade_date)[
+            need_cols]
         # end = time.time()
         # use_time=end - start
-        # print('get_factor_data 运行时间为: %s Seconds' % (use_time))
+        # print('load_factor_data 运行时间为: %s Seconds' % (use_time))
         return basics_data
 
+    def get_factor_data(self, factor, trade_date):
+        """
+        获取含有因子数据的行情
+        """
+        basics_data: DataFrame = self.factor_basics_data[trade_date][[
+            'ts_code', 'circ_mv', factor]]
+        basics_data.dropna(axis=0, how='any', subset=[factor], inplace=True)
+        return basics_data
+
+    # @retry(max_retry=3, time_interval=9)
     def cal_port_monthly_return(self, port, startdate, enddate, CMV):
         """
         计算分组内流通市值加权的月收益率
         """
-        close1 = get_price(port, startdate)
+        port_codes = []
+        value_sql = ','.join(['%s'] * len(port))
+        sql = r"""select ts_code,close from sample_stk_price where trade_date=%s and ts_code in ({}) and asset=%s""".format(value_sql)
+        port_codes.append(startdate)
+        for p in port:
+            port_codes.append(p)
+        port_codes.append('E')
+        params1=tuple(port_codes)
+        port_codes[0]=enddate
+        params2 = tuple(port_codes)
+        data1 = self.db.selectall(sql=sql, param=params1)
+        data2 = self.db.selectall(sql=sql, param=params2)
+
+        columns = ['ts_code', 'close']
+        close1 = pd.DataFrame([list(i) for i in data1], columns=columns)
+        close1.index=close1['ts_code']
+        close2 = pd.DataFrame([list(i) for i in data2], columns=columns)
+        close2.index = close2['ts_code']
         c1_list = close1['ts_code'].to_list()
-        close2 = get_price(port, enddate)
         c2_list = close2['ts_code'].to_list()
         valid_codes = list(set(c1_list).intersection(set(c2_list)))
         close1 = close1['close'].loc[valid_codes]
@@ -307,11 +415,17 @@ class FactorValidityCheck(Singleton):
         """
         计算分组内基准的月收益率
         """
-        close1 = get_price([self.benchmark], startdate, asset='I')
-        close2 = get_price([self.benchmark], enddate, asset='I')
-        c1_list = close1['ts_code'].to_list()
-        c2_list = close2['ts_code'].to_list()
-        valid_codes = list(set(c1_list).intersection(set(c2_list)))
+        sql = r"""select ts_code,close from sample_stk_price where trade_date=%s and ts_code =%s and asset=%s"""
+        params1 = (startdate, self.benchmark, 'I')
+        params2 = (enddate, self.benchmark, 'I')
+        data1 = self.db.selectall(sql=sql, param=params1)
+        data2 = self.db.selectall(sql=sql, param=params2)
+        columns = ['ts_code', 'close']
+        close1 = pd.DataFrame([list(i) for i in data1], columns=columns)
+        close2 = pd.DataFrame([list(i) for i in data2], columns=columns)
+        close1.index = close1['ts_code']
+        close2.index = close2['ts_code']
+        valid_codes = close1['ts_code'].to_list()
         close1 = close1['close'].loc[valid_codes]
         close2 = close2['close'].loc[valid_codes]
         benchmark_return = (close2 / close1 - 1).sum()

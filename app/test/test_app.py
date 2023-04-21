@@ -49,3 +49,9 @@ class Test(TestCase):
         ddd=pd.concat([df1,df2],axis=0)
 
         print(ddd)
+
+        benchmark_map = {'x':[1,2,3],'y':[7,9,0,98],'sd':['e','r','ttt']}
+        print(len(benchmark_map))
+        ttp=tuple(['hh','ggg','rr','ee'])
+        sql="""select ts_code,close from sample_stk_price where trade_date={} and ts_code in {} and asset={}""""".format("ss",ttp,"rr")
+        print(sql)

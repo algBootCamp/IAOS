@@ -12,6 +12,7 @@ def retry(max_retry: int = 3, time_interval: int = 1):
     max_retry: 最大重试次数 默认3次
     time_interval: 每次重试间隔 默认1s
     """
+
     def _retry(func):
         # noinspection PyBroadException
         @wraps(func)
@@ -34,6 +35,48 @@ def retry(max_retry: int = 3, time_interval: int = 1):
                     return await func(*args, **kwargs)
                 except:
                     await asyncio.sleep(time_interval)
+
+        wrapper = async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
+        return wrapper
+
+    return _retry
+
+
+def retry_for_none(max_retry: int = 3, time_interval: int = 1):
+    """
+    当返回值为None 任务重试装饰器:支持异步、同步函数
+    max_retry: 最大重试次数 默认3次
+    time_interval: 每次重试间隔 默认1s
+    """
+
+    def _retry(func):
+        # noinspection PyBroadException
+        @wraps(func)
+        def sync_wrapper(*args, **kwargs):
+            # 同步函数循环重试
+            res = func(*args, **kwargs)
+            if res is None:
+                for _ in range(max_retry):
+                    try:
+                        res = func(*args, **kwargs)
+                    except:
+                        time.sleep(time_interval)
+                    else:
+                        return res
+            return res
+
+        # noinspection PyBroadException
+        @wraps(func)
+        async def async_wrapper(*args, **kwargs):
+            # 异步循环重试
+            res = func(*args, **kwargs)
+            if res is None:
+                for _ in range(max_retry):
+                    try:
+                        return await func(*args, **kwargs)
+                    except:
+                        await asyncio.sleep(time_interval)
+            return await res
 
         wrapper = async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
         return wrapper

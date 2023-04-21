@@ -51,7 +51,7 @@ log_err = logging.getLogger("log_err")
 # ----  log ------ #
 
 
-# noinspection PyMethodMayBeStatic,SpellCheckingInspection,PyIncorrectDocstring,DuplicatedCode
+# noinspection PyMethodMayBeStatic,SpellCheckingInspection,PyIncorrectDocstring,DuplicatedCode,PyBroadException
 class BaseDataClean(object):
     # 交易日所在年上一年年报数据
     year_fina_indictor = None
@@ -223,7 +223,6 @@ class BaseDataClean(object):
             if BaseDataClean.stocks_pool is None:
                 cls.init_stocks_pool()
                 # 市场、行业数据
-                # ts_codes_str = ",".join(BaseDataClean.stocks_pool['ts_code'].tolist())
                 exchange_data = BaseDataClean.stocks_pool['ts_code'].tolist()
                 exchange_data = [x.split('.')[1] for x in exchange_data]
                 exchange_data = pd.Series(exchange_data)
@@ -236,13 +235,13 @@ class BaseDataClean(object):
                      'volume_ratio', 'pe', 'pe_ttm', 'pb', 'ps',
                      'ps_ttm', 'total_share', 'float_share', 'total_mv',
                      'circ_mv', 'dv_ratio', 'dv_ttm']
-            t0 = time.time()
+            # t0 = time.time()
             basics_data: DataFrame = BaseDataClean.tsdatacapture.get_daily_basic(
                 trade_date=trade_date)[b_col]
             base_stock_infos = pd.merge(left=ex_indu_data, right=basics_data, on='ts_code')
-            t1 = time.time()
-            t10 = t1 - t0
-            print(t10)
+            # t1 = time.time()
+            # t10 = t1 - t0
+            # print(t10)
             # 指定交易日所有股票的交易数据
             # 代码,涨跌幅,现价,成交量,成交额
             t_col = ['ts_code', 'pct_chg', 'close', 'vol', 'amount']
@@ -259,19 +258,18 @@ class BaseDataClean(object):
                                        'vol': 'volume'}, inplace=True)
             base_stock_infos = pd.merge(left=base_stock_infos, right=trade_data,
                                         on='ts_code')
-            t2 = time.time()
-            t21 = t2 - t1
-            print(t21)
+            # t2 = time.time()
+            # t21 = t2 - t1
+            # print(t21)
             # 取上一年年报财务数据
             final_period = str(int(trade_date[0:4]) - 1) + "1231"
-            f_col, fina_indicator = cls.get_year_fina_indictor(final_period)
+            f_col, fina_indicator = cls.get_year_fina_indictor(base_stock_infos['ts_code'].tolist(), final_period)
             if fina_indicator is not None:
                 fina_indicator = fina_indicator[f_col]
                 fina_indicator.drop_duplicates(subset=['ts_code'], keep='first', inplace=True)
                 base_stock_infos = pd.merge(left=base_stock_infos, right=fina_indicator, on='ts_code')
-            t3 = time.time()
-            t32 = t3 - t2
-            print(t32)
+            # t3 = time.time()
+            # t32 = t3 - t2
             # '总市值', '流通市值'[万元--->亿元] '总股本', '流通股本'[万股--->亿股]
             if base_stock_infos is not None:
                 base_stock_infos['total_share'] = base_stock_infos['total_share'] * BaseDataClean.billion
@@ -285,7 +283,7 @@ class BaseDataClean(object):
             raise e
 
     @classmethod
-    def get_year_fina_indictor(cls, final_period):
+    def get_year_fina_indictor(cls, ts_codes_str, final_period):
         """
         交易日所在年上一年年报数据
         """
@@ -295,11 +293,30 @@ class BaseDataClean(object):
         # 营业总收入同比增长率(%) 营业收入同比增长率(%) 净资产同比增长率 更新标识
         f_col = ['ts_code', 'ann_date', 'end_date', 'eps', 'current_ratio', 'quick_ratio', 'bps',
                  'netprofit_margin', 'grossprofit_margin', 'profit_to_gr', 'op_of_gr', 'roe', 'basic_eps_yoy',
-                 'roa', 'npta', 'roic', 'roe_yearly', 'roa2_yearly', 'debt_to_assets', 'op_yoy',
+                 'roa', 'npta', 'roic', 'roe_yearly', 'roa_yearly','roa2_yearly', 'debt_to_assets', 'op_yoy',
                  'ebt_yoy', 'tr_yoy', 'or_yoy', 'equity_yoy', 'update_flag']
         if final_period != cls.pre_final_period:
             cls.pre_final_period = final_period
-            fina_indicator: DataFrame = BaseDataClean.tsdatacapture.get_fina_indicator(period=final_period)
+            fina_indicator = DataFrame()
+            if len(ts_codes_str) > 300:
+                f = lambda a: map(lambda b: a[b:b + 600], range(0, len(a), 600))
+                part_ports = f(ts_codes_str)
+            for part_port in part_ports:
+                ts_codes = ",".join(part_port)
+                new_fina_indicator = BaseDataClean.tsdatacapture.get_fina_indicator(ts_code=ts_codes,
+                                                                                    period=final_period)
+                fina_indicator = pd.concat([fina_indicator, new_fina_indicator], axis=0)
+
+            if fina_indicator is None or fina_indicator.empty:
+                for _ in range(3):
+                    try:
+                        for part_port in part_ports:
+                            ts_codes = ",".join(part_port)
+                            new_fina_indicator = BaseDataClean.tsdatacapture.get_fina_indicator(ts_code=ts_codes,
+                                                                                                period=final_period)
+                            fina_indicator = pd.concat([fina_indicator, new_fina_indicator], axis=0)
+                    except:
+                        time.sleep(3)
             cls.year_fina_indictor = fina_indicator
         return f_col, cls.year_fina_indictor
 
