@@ -4,8 +4,7 @@ from quantization.factor_validity_check.factor_validity_check import FactorValid
 def test_cal_factors_ic():
     fvc = FactorValidityCheck(sample_periods=7)
     # fvc.check_factor_validity(fac='roe_yearly')
-    fvc.get_validity_all_factors()
-    fvc.draw_return_picture()
+    fvc.get_validity_all_factors(refresh=False)
 
 
 def test_draw():
