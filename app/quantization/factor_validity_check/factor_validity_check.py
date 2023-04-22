@@ -285,11 +285,9 @@ class FactorValidityCheck(Singleton):
 
     def part_data_cal_mon_profit(self, basics_data, end_date, factor, port_profit, start_date):
         """分组 并计算 分组月收益"""
-        score = basics_data[['ts_code', factor]].copy(deep=True)
-        score.sort_values(by=factor)
+        score = basics_data[['ts_code', factor]].sort_values(by=factor)
         # 流通市值
-        cmv = basics_data[['ts_code', 'CMV']].copy(deep=True)
-        cmv.sort_values(by='ts_code')
+        cmv = basics_data[['ts_code', 'CMV']]
         cmv.index = cmv['ts_code']
         port1 = list(score['ts_code'])[: len(score.index) // 5]
         port2 = list(score['ts_code'])[len(score.index) // 5: 2 * len(score.index) // 5]
