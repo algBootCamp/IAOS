@@ -4,6 +4,8 @@
     <img src ="https://img.shields.io/badge/python-3.7|3.8|3.9|3.10-blue.svg" />
 </p>
 
+![image](https://github.com/algBootCamp/IAOS/assets/30285467/b07e41f1-0b67-4194-93c7-9614436237da)
+
 ---
 #### IAOS是一款Python开发的中低频率智能证券量化分析系统
 - 主要指导思想：价值投资为主，技术分析为辅
